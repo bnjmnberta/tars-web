@@ -70,9 +70,12 @@ p{margin:0;}
 ::selection{background:var(--c-yellow);color:var(--c-black);}
 
 :focus-visible{
-  outline:3px solid var(--c-yellow);
+  outline:3px solid var(--focus,var(--c-yellow));
   outline-offset:3px;
 }
+/* yellow ring vanishes on light/coloured fields — flip it to a colour that keeps >=3:1 */
+.stack__item--green,.stack__item--blue,.stack__item--yellow,.stack__item--cyan,.cta{--focus:var(--c-black);}
+.stack__item--maroon{--focus:var(--c-white);--numeral:var(--c-white);}
 
 .outline{
   -webkit-text-stroke:2px var(--c-white);
@@ -216,7 +219,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   z-index:1000;
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  gap:var(--space-3);
   height:var(--nav-h);
   padding:0 var(--space-3);
   background:rgba(10,10,10,.7);
@@ -226,9 +229,11 @@ body.is-loading{overflow:hidden;height:100vh;}
   transition:transform var(--dur-med) var(--ease-brutal);
 }
 .nav.nav--hidden{transform:translateY(-100%);}
+/* never hide the bar while a keyboard user is inside it (WCAG 2.2 focus not obscured) */
+.nav.nav--hidden:focus-within{transform:translateY(0);}
 
 .nav__logo{display:flex;align-items:center;gap:.6rem;}
-.nav__logo img{height:34px;width:auto;}
+.nav__logo img{height:34px;width:auto;mix-blend-mode:screen;}
 .nav__logo span{
   font-family:var(--font-display);
   font-weight:900;
@@ -238,6 +243,7 @@ body.is-loading{overflow:hidden;height:100vh;}
 
 .nav__links{
   display:flex;
+  margin-inline:auto;
   gap:var(--space-4);
   font-family:var(--font-mono);
   font-size:.85rem;
@@ -333,7 +339,7 @@ body.is-loading{overflow:hidden;height:100vh;}
 .hero__overlay{
   position:absolute;inset:0;z-index:1;
   background:
-    linear-gradient(180deg, rgba(10,10,10,.55) 0%, rgba(10,10,10,.35) 40%, rgba(10,10,10,.9) 100%);
+    linear-gradient(180deg, rgba(10,10,10,.6) 0%, rgba(10,10,10,.55) 45%, rgba(10,10,10,.94) 100%);
   transform:translateZ(0) scale(1.16);
 }
 .hero__frame{
@@ -374,6 +380,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   letter-spacing:.15em;
   font-size:.85rem;
   color:var(--c-green);
+  text-shadow:0 1px 14px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8);
   margin-bottom:var(--space-2);
 }
 .hero__title{
@@ -389,6 +396,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   font-style:normal;
   will-change:transform;
 }
+.hero__title span > i:not(.metal-text){text-shadow:0 2px 28px rgba(0,0,0,.55);}
 
 /* ---- metallic 3D letters: brushed-steel fill + a dark offset copy behind
    each glyph (extrusion), letters tilt on their own Z-plane via JS/mouse ---- */
@@ -402,27 +410,35 @@ body.is-loading{overflow:hidden;height:100vh;}
   display:inline-block;
   transform-style:preserve-3d;
   will-change:transform, filter;
+  color:transparent; /* the real glyph only reserves width; ::before = extrusion, ::after = metal face */
+}
+/* extrusion: darker copy pushed back in Z and down — reads as the letter's thickness */
+.metal-letter::before{
+  content:attr(data-char);
+  position:absolute;
+  inset:0;
+  z-index:0;
+  transform:translateZ(-9px) translateY(4px);
+  background:linear-gradient(180deg,#6a6a6a,#161616);
+  background-clip:text;
+  -webkit-background-clip:text;
+  color:transparent;
+}
+/* face: brushed-steel gradient + a highlight band that slides with tilt; sits ABOVE the extrusion */
+.metal-letter::after{
+  content:attr(data-char);
+  position:absolute;
+  inset:0;
+  z-index:1;
   background-image:
     linear-gradient(180deg,
-      #ffffff 0%, #d6d6d6 20%, #8a8a8a 45%,
-      #f4f4f4 58%, #9a9a9a 75%, #ffffff 100%),
+      #ffffff 0%, #ececec 20%, #b4b4b4 45%,
+      #fafafa 58%, #c6c6c6 75%, #ffffff 100%),
     linear-gradient(115deg,
       transparent 30%, rgba(255,255,255,.95) 50%, transparent 70%);
   background-size:100% 100%, 300% 300%;
   background-position:0 0, calc(var(--shine) * 1%) 50%;
   background-blend-mode:normal, overlay;
-  background-clip:text;
-  -webkit-background-clip:text;
-  color:transparent;
-  filter:drop-shadow(0 0 0 rgba(0,0,0,0));
-}
-.metal-letter::before{
-  content:attr(data-char);
-  position:absolute;
-  inset:0;
-  z-index:-1;
-  transform:translateZ(-9px) translateY(4px);
-  background:linear-gradient(180deg,#4a4a4a,#0c0c0c);
   background-clip:text;
   -webkit-background-clip:text;
   color:transparent;
@@ -474,8 +490,38 @@ body.is-loading{overflow:hidden;height:100vh;}
   z-index:3;
   width:min(160px,22vw);
   opacity:.9;
+  mix-blend-mode:screen; /* PNG ships with a black backdrop — screen drops it so no box shows over the video */
   transform:translateZ(0);
   will-change:transform;
+}
+
+.hero__pause{
+  position:absolute;
+  z-index:4;
+  left:var(--space-3);
+  top:calc(var(--nav-h) + var(--space-4));
+  width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,10,10,.55);
+  border:2px solid var(--c-white);
+  color:var(--c-white);
+  transition:background var(--dur-fast) var(--ease-brutal),color var(--dur-fast) var(--ease-brutal);
+}
+.hero__pause:hover{background:var(--c-white);color:var(--c-black);}
+.hero__pause-icon{
+  width:4px;height:16px;
+  background:currentColor;
+  box-shadow:8px 0 0 currentColor; /* two bars = pause */
+  margin-right:8px;
+}
+.hero__pause[aria-pressed="true"] .hero__pause-icon{
+  width:0;height:0;
+  margin-right:0;
+  background:none;
+  box-shadow:none;
+  border-style:solid;
+  border-width:8px 0 8px 13px;
+  border-color:transparent transparent transparent currentColor; /* triangle = play */
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -545,8 +591,9 @@ body.is-loading{overflow:hidden;height:100vh;}
   font-size:clamp(2rem,6vw,3.5rem);
 }
 
-.stack{position:relative;}
+.stack{position:relative;counter-reset:svc;}
 .stack__item{
+  counter-increment:svc;
   position:sticky;
   top:0;
   min-height:100svh;
@@ -562,6 +609,23 @@ body.is-loading{overflow:hidden;height:100vh;}
 .stack__item--maroon{background:var(--c-maroon);color:var(--c-white);}
 .stack__item--cyan{background:var(--c-cyan);}
 
+/* oversized outlined numeral fills the empty top of each block (decorative, hidden from AT) */
+.stack__item::after{
+  content:counter(svc,decimal-leading-zero);
+  content:counter(svc,decimal-leading-zero) / "";
+  position:absolute;
+  top:calc(var(--nav-h) + var(--space-2));
+  right:var(--space-3);
+  font-family:var(--font-display);
+  font-weight:900;
+  font-size:clamp(7rem,24vw,22rem);
+  line-height:.8;
+  letter-spacing:-.04em;
+  color:transparent;
+  -webkit-text-stroke:2px var(--numeral,var(--c-black)); /* currentColor is transparent here, so name the colour */
+  opacity:.4;
+  pointer-events:none;
+}
 .stack__inner{
   max-width:1100px;
   width:100%;
@@ -570,7 +634,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   font-family:var(--font-mono);
   font-weight:700;
   font-size:1rem;
-  opacity:.6;
+  opacity:.85;
   display:block;
   margin-bottom:var(--space-2);
 }
@@ -636,6 +700,13 @@ body.is-loading{overflow:hidden;height:100vh;}
   padding:var(--space-7) var(--space-3);
   text-align:center;
 }
+.cta__label{
+  font-family:var(--font-mono);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-size:.9rem;
+  margin-bottom:var(--space-3);
+}
 .cta h2{
   font-size:clamp(2.4rem,8vw,5.5rem);
   -webkit-text-stroke:0;
@@ -670,7 +741,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   gap:var(--space-4);
   padding-bottom:var(--space-4);
 }
-.footer__logo img{width:120px;}
+.footer__logo img{width:120px;mix-blend-mode:screen;}
 .footer__nav{
   display:flex;
   flex-direction:column;
@@ -735,6 +806,7 @@ body.is-loading{overflow:hidden;height:100vh;}
    ============================================ */
 @media (max-width:900px){
   .nav__links{display:none;}
+  .btn--nav{margin-left:auto;}
   .nav__burger{display:flex;}
   .case__card{grid-template-columns:1fr;}
   .hero__brand{display:none;}
@@ -748,9 +820,6 @@ body.is-loading{overflow:hidden;height:100vh;}
 }
 
 @media (max-width:480px){
-  .hero__video{display:none;}
-  .hero{background:
-      radial-gradient(circle at 20% 20%, rgba(0,226,138,.12), transparent 55%),
-      var(--c-black);
-  }
+  .hero__video,.hero__pause{display:none;}
+  .hero{background:var(--c-black) url('../assets/hero-poster.jpg') center/cover no-repeat;}
 }

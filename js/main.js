@@ -146,16 +146,35 @@
     var video = document.querySelector('[data-hero-video]');
     if (!video) return;
 
+    var toggle = document.querySelector('[data-video-toggle]');
     var smallScreen = window.matchMedia('(max-width: 480px)').matches;
-    if (reduceMotion || smallScreen) {
+    var userPaused = reduceMotion || smallScreen;
+
+    function syncToggle() {
+      if (!toggle) return;
+      toggle.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
+      toggle.setAttribute('aria-label', userPaused ? 'Reproducir video de fondo' : 'Pausar video de fondo');
+    }
+
+    if (userPaused) {
       video.removeAttribute('autoplay');
       video.pause();
     }
+    syncToggle();
 
-    if (typeof IntersectionObserver === 'function' && !reduceMotion && !smallScreen) {
+    // WCAG 2.2.2: autoplaying motion needs a way to stop it, and that choice must survive scrolling
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        userPaused = !userPaused;
+        if (userPaused) { video.pause(); } else { video.play().catch(function () {}); }
+        syncToggle();
+      });
+    }
+
+    if (typeof IntersectionObserver === 'function' && !smallScreen) {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !userPaused) {
             video.play().catch(function () {});
           } else {
             video.pause();
@@ -340,8 +359,10 @@
         // brushed-metal highlight slides across the glyph as it turns, like light catching a tilted blade
         quick[i].shine(50 + gsap.utils.clamp(-50, 50, ry * 1.6));
         // shadow leans away from the tilt so the pop toward the viewer actually reads as depth
-        el.style.filter = 'drop-shadow(' + (-ry * 0.35).toFixed(1) + 'px ' + (rx * -0.35).toFixed(1) +
-          'px ' + (4 + influence * 10).toFixed(1) + 'px rgba(0,0,0,' + (0.35 + influence * 0.35).toFixed(2) + '))';
+        // no shadow at rest (keeps the letters crisp/bright over the video); it grows only as a letter lifts toward the cursor
+        el.style.filter = influence < 0.02 ? 'none' :
+          'drop-shadow(' + (-ry * 0.35).toFixed(1) + 'px ' + (rx * -0.35).toFixed(1) +
+          'px ' + (influence * 12).toFixed(1) + 'px rgba(0,0,0,' + (influence * 0.6).toFixed(2) + '))';
       });
     }
 
