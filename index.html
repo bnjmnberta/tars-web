@@ -34,22 +34,48 @@
     <img src="assets/logo-mark.png" alt="">
     <span>TARS</span>
   </a>
-  <nav class="nav__links" aria-label="Navegación principal">
-    <a href="#servicios">Servicios</a>
-    <a href="#clientes">Clientes</a>
-    <a href="#contacto">Contacto</a>
-  </nav>
   <a href="#contacto" class="btn btn--nav">Hablemos <span aria-hidden="true">→</span></a>
-  <button class="nav__burger" data-burger aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-mobile">
-    <span></span><span></span><span></span>
+  <button class="nav__menu" type="button" data-menu-toggle aria-expanded="false" aria-controls="menu" aria-label="Abrir menú">
+    <span class="nav__menu-label" data-menu-label>Menú</span>
+    <span class="nav__menu-icon" aria-hidden="true"><i></i><i></i></span>
   </button>
 </header>
 
-<nav class="nav-mobile" id="nav-mobile" data-nav-mobile aria-label="Navegación móvil">
-  <a href="#servicios" data-nav-mobile-link>Servicios</a>
-  <a href="#clientes" data-nav-mobile-link>Clientes</a>
-  <a href="#contacto" data-nav-mobile-link>Contacto</a>
-</nav>
+<div class="menu" id="menu" data-menu role="dialog" aria-modal="true" aria-label="Menú principal" inert>
+  <nav class="menu__nav" aria-label="Navegación principal">
+    <a class="menu__link" href="#servicios" data-menu-link style="--i:0;--hue:var(--c-green)">
+      <span class="menu__idx" aria-hidden="true">01</span>
+      <span class="menu__txt"><span class="menu__txt-in">Servicios</span></span>
+      <span class="menu__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="menu__link" href="#clientes" data-menu-link style="--i:1;--hue:var(--c-blue)">
+      <span class="menu__idx" aria-hidden="true">02</span>
+      <span class="menu__txt"><span class="menu__txt-in">Clientes</span></span>
+      <span class="menu__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="menu__link" href="#contacto" data-menu-link style="--i:2;--hue:var(--c-yellow)">
+      <span class="menu__idx" aria-hidden="true">03</span>
+      <span class="menu__txt"><span class="menu__txt-in">Contacto</span></span>
+      <span class="menu__arrow" aria-hidden="true">→</span>
+    </a>
+  </nav>
+  <aside class="menu__side">
+    <p class="menu__kicker">Servicios</p>
+    <ul class="menu__tags">
+      <li><a href="#servicios" data-menu-link>Logos</a></li>
+      <li><a href="#servicios" data-menu-link>Flyers | Videos</a></li>
+      <li><a href="#servicios" data-menu-link>Gestión de Redes</a></li>
+      <li><a href="#servicios" data-menu-link>Marketing Inmobiliario</a></li>
+      <li><a href="#servicios" data-menu-link>Diseño Web</a></li>
+    </ul>
+    <p class="menu__kicker">Escribinos</p>
+    <ul class="menu__contact">
+      <li><a href="https://wa.me/5490000000000" target="_blank" rel="noopener">WhatsApp</a></li>
+      <li><a href="https://instagram.com/tars.estudio" target="_blank" rel="noopener">Instagram</a></li>
+      <li><a href="mailto:hola@tars.studio">hola@tars.studio</a></li>
+    </ul>
+  </aside>
+</div>
 
 <main id="main">
   <section class="hero" id="top">

@@ -13,7 +13,7 @@
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     setupLenis();
-    setupNavToggle();
+    setupMenu();
     setupNavAutohide();
     setupToTop();
     setupHeroVideo();
@@ -80,32 +80,81 @@
       } else {
         target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       }
-      // closing the mobile menu on link click is already handled by setupNavToggle()
+      // the full-screen menu closes itself on link click (setupMenu) before this scroll runs
     });
   }
 
-  /* ---------- mobile nav ---------- */
-  function setupNavToggle() {
-    var burger = document.querySelector('[data-burger]');
-    var mobile = document.querySelector('[data-nav-mobile]');
-    if (!burger || !mobile) return;
+  /* ---------- full-screen menu (animation is pure CSS; this only owns state + a11y) ----------
+     click/keyboard toggles it everywhere; on hover-capable pointers, resting on the button
+     for a beat opens it too (Unseen-style) — a click right after a hover-open is ignored so
+     the two gestures can't cancel each other. */
+  function setupMenu() {
+    var btn = document.querySelector('[data-menu-toggle]');
+    var menu = document.querySelector('[data-menu]');
+    if (!btn || !menu) return;
 
-    function close() {
-      mobile.classList.remove('is-open');
-      burger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
-    }
-    function toggle() {
-      var open = mobile.classList.toggle('is-open');
-      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var label = btn.querySelector('[data-menu-label]');
+    var inertTargets = [document.getElementById('main'), document.querySelector('.footer')];
+    var logo = document.querySelector('.nav__logo');
+    var isOpen = false;
+    var openedAt = 0;
+    var hoverTimer = null;
+
+    function setOpen(open, viaKeyboardOrClick) {
+      if (open === isOpen) return;
+      isOpen = open;
+      menu.classList.toggle('is-open', open);
+      document.body.classList.toggle('menu-open', open);
+      menu.inert = !open;
+      inertTargets.forEach(function (el) { if (el) el.inert = open; });
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      if (label) label.textContent = open ? 'Cerrar' : 'Menú';
       document.body.style.overflow = open ? 'hidden' : '';
+      if (lenis) { if (open) lenis.stop(); else lenis.start(); }
+      if (open) {
+        // the bar may already be tucked away by scroll-direction autohide; the Cerrar button lives in it
+        var bar = document.querySelector('[data-nav]');
+        if (bar) bar.classList.remove('nav--hidden');
+        openedAt = Date.now();
+        if (viaKeyboardOrClick) {
+          var first = menu.querySelector('[data-menu-link]');
+          if (first) window.setTimeout(function () { first.focus({ preventScroll: true }); }, 60);
+        }
+      }
     }
-    burger.addEventListener('click', toggle);
-    mobile.querySelectorAll('[data-nav-mobile-link]').forEach(function (link) {
-      link.addEventListener('click', close);
+
+    btn.addEventListener('click', function () {
+      if (Date.now() - openedAt < 500 && isOpen) return; // ignore the click that follows a hover-open
+      setOpen(!isOpen, true);
     });
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') close();
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      btn.addEventListener('mouseenter', function () {
+        if (isOpen) return;
+        hoverTimer = window.setTimeout(function () { setOpen(true, false); }, 220);
+      });
+      btn.addEventListener('mouseleave', function () { window.clearTimeout(hoverTimer); });
+    }
+
+    // leaving through any link (section, contact, or the logo) closes it; the anchor handler then scrolls
+    menu.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    if (logo) logo.addEventListener('click', function () { if (isOpen) setOpen(false); });
+
+    document.addEventListener('keydown', function (e) {
+      if (!isOpen) return;
+      if (e.key === 'Escape') { setOpen(false); btn.focus(); return; }
+      if (e.key !== 'Tab') return;
+      // keep Tab inside header + menu while it's open
+      var stops = [].slice.call(document.querySelectorAll('.nav a, .nav button, .menu a')).filter(function (el) {
+        return el.offsetParent !== null && getComputedStyle(el).pointerEvents !== 'none';
+      });
+      if (!stops.length) return;
+      var first = stops[0], last = stops[stops.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
   }
 
@@ -121,7 +170,7 @@
       ticking = true;
       requestAnimationFrame(function () {
         var y = window.scrollY;
-        if (y > lastY && y > 140) {
+        if (y > lastY && y > 140 && !document.body.classList.contains('menu-open')) {
           nav.classList.add('nav--hidden');
         } else {
           nav.classList.remove('nav--hidden');
