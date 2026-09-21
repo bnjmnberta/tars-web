@@ -75,7 +75,7 @@ p{margin:0;}
 }
 /* yellow ring vanishes on light/coloured fields — flip it to a colour that keeps >=3:1 */
 .stack__item--green,.stack__item--blue,.stack__item--yellow,.stack__item--cyan,.cta{--focus:var(--c-black);}
-.stack__item--maroon{--focus:var(--c-white);--numeral:var(--c-white);}
+.stack__item--maroon{--focus:var(--c-white);}
 
 .outline{
   -webkit-text-stroke:2px var(--c-white);
@@ -282,9 +282,10 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   inset:0;
   z-index:1050;
   display:grid;
-  grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);
-  gap:var(--space-5);
-  padding:calc(var(--nav-h) + var(--space-3)) var(--space-3) var(--space-4);
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:1fr auto;
+  gap:var(--space-4);
+  padding:calc(var(--nav-h) + var(--space-3)) var(--space-3) var(--space-3);
   background:var(--c-black);
   clip-path:inset(0 0 100% 0);
   visibility:hidden;
@@ -322,7 +323,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .menu__link:hover,.menu__link:focus-visible{color:var(--c-black);}
 .menu__link:hover::before,.menu__link:focus-visible::before{transform:scaleY(1);}
 .menu__link:focus-visible{outline-offset:-6px;outline-color:var(--c-black);}
-.menu__idx{font-family:var(--font-mono);font-size:.9rem;font-weight:700;min-width:2.2ch;}
 .menu__txt{display:block;overflow:hidden;flex:1;min-width:0;}
 .menu__txt-in{
   display:block;
@@ -331,7 +331,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   text-transform:uppercase;
   letter-spacing:-.03em;
   line-height:1.02;
-  font-size:clamp(2.6rem,6.6vw,7rem); /* sized so "CONTACTO" fits its column — the mask clips anything wider */
+  font-size:clamp(2.6rem,11vw,10rem); /* single full-width column: "CONTACTO" fits at every width (the mask clips anything wider) */
   transform:translateY(112%);
   transition:transform .8s var(--ease-brutal);
   transition-delay:0s;
@@ -354,55 +354,56 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 .menu__link:hover .menu__arrow,.menu__link:focus-visible .menu__arrow{opacity:1;transform:none;}
 
-.menu__side{
-  align-self:end;
-  display:flex;
-  flex-direction:column;
+.menu__foot{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:var(--space-2);
-  min-width:0;
   opacity:0;
   transform:translateY(24px);
   transition:opacity .4s,transform .6s var(--ease-brutal);
 }
-.menu.is-open .menu__side{opacity:1;transform:none;transition-delay:.55s;}
-.menu__kicker{
-  font-family:var(--font-mono);
-  color:var(--c-green);
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  font-size:.8rem;
-  margin-top:var(--space-2);
-}
-.menu__tags,.menu__contact{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.6rem;}
-.menu__tags a{
-  display:inline-block;
-  padding:.45rem 1rem;
+.menu.is-open .menu__foot{opacity:1;transform:none;transition-delay:.55s;}
+/* contact tiles echo the rows above: bordered, then flood with a colour on hover */
+.menu__social{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-2);
+  min-height:64px;
+  padding:1rem 1.25rem;
   border:2px solid rgba(246,246,241,.7);
-  border-radius:999px;
+  color:var(--c-white);
   font-family:var(--font-mono);
-  font-size:.8rem;
+  font-weight:700;
+  font-size:.95rem;
   text-transform:uppercase;
-  transition:background .2s,color .2s;
+  letter-spacing:.03em;
+  transition:color .25s var(--ease-brutal);
 }
-.menu__tags a:hover,.menu__tags a:focus-visible{background:var(--c-white);color:var(--c-black);}
-.menu__contact{flex-direction:column;gap:.5rem;}
-.menu__contact a{
-  font-family:var(--font-mono);
-  font-size:1rem;
-  border-bottom:2px solid transparent;
+.menu__social::before{
+  content:'';
+  position:absolute;inset:0;
+  z-index:-1;
+  background:var(--hue);
+  transform:scaleY(0);
+  transform-origin:bottom;
+  transition:transform .4s var(--ease-brutal);
 }
-.menu__contact a:hover,.menu__contact a:focus-visible{border-bottom-color:var(--c-green);}
+.menu__social:hover,.menu__social:focus-visible{color:var(--c-black);}
+.menu__social:hover::before,.menu__social:focus-visible::before{transform:scaleY(1);}
+.menu__social:focus-visible{outline-offset:-6px;outline-color:var(--c-black);}
+.menu__social span:last-child{transition:transform .35s var(--ease-brutal);}
+.menu__social:hover span:last-child,.menu__social:focus-visible span:last-child{transform:translate(3px,-3px);}
 
-/* below ~1100px two columns get too tight for the giant links: stack them */
-@media (max-width:1100px){
-  .menu{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:var(--space-3);}
-  .menu__side{align-self:start;}
-  .menu__txt-in{font-size:clamp(2.6rem,11vw,7rem);}
-}
 @media (max-width:600px){
   .menu__arrow{display:none;}
   .menu__link{gap:var(--space-2);}
   .menu__txt-in{font-size:clamp(2.2rem,9.5vw,5rem);}
+  .menu__foot{grid-template-columns:1fr;gap:.5rem;}
+  .menu__social{min-height:52px;}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -410,7 +411,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .menu{visibility:hidden;}
   .menu.is-open{visibility:visible;}
   .menu__txt-in,.menu.is-open .menu__txt-in{transform:none;transition:none;}
-  .menu__side{opacity:1;transform:none;transition:none;}
+  .menu__foot{opacity:1;transform:none;transition:none;}
 }
 
 /* ============================================
@@ -447,7 +448,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .hero__overlay{
   position:absolute;inset:0;z-index:1;
   background:
-    linear-gradient(180deg, rgba(10,10,10,.6) 0%, rgba(10,10,10,.55) 45%, rgba(10,10,10,.94) 100%);
+    linear-gradient(180deg, rgba(10,10,10,.82) 0%, rgba(10,10,10,.78) 45%, rgba(10,10,10,.96) 100%); /* dark enough that the image trail reads clearly over the video */
   transform:translateZ(0) scale(1.16);
 }
 .hero__frame{
@@ -603,6 +604,28 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   will-change:transform;
 }
 
+/* ---- image trail (hover gallery): images drop under the cursor as it moves over the hero ---- */
+.hero__trail{
+  position:absolute;
+  inset:0;
+  z-index:5;
+  pointer-events:none;
+  overflow:hidden;
+}
+.hero__trail img{
+  position:absolute;
+  top:0;left:0;
+  width:clamp(140px,17vw,300px);
+  height:auto;
+  opacity:0;
+  pointer-events:none;
+  will-change:transform;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+}
+@media (prefers-reduced-motion: reduce){
+  .hero__trail{display:none;}
+}
+
 .hero__pause{
   position:absolute;
   z-index:4;
@@ -690,18 +713,12 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   gap:var(--space-2);
   padding:var(--space-6) var(--space-3) var(--space-4);
 }
-.services__kicker{
-  font-family:var(--font-mono);
-  color:var(--c-green);
-  font-size:.95rem;
-}
 .services__head h2{
   font-size:clamp(2rem,6vw,3.5rem);
 }
 
-.stack{position:relative;counter-reset:svc;}
+.stack{position:relative;}
 .stack__item{
-  counter-increment:svc;
   position:sticky;
   top:0;
   min-height:100svh;
@@ -717,23 +734,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__item--maroon{background:var(--c-maroon);color:var(--c-white);}
 .stack__item--cyan{background:var(--c-cyan);}
 
-/* oversized outlined numeral fills the empty top of each block (decorative, hidden from AT) */
-.stack__item::after{
-  content:counter(svc,decimal-leading-zero);
-  content:counter(svc,decimal-leading-zero) / "";
-  position:absolute;
-  top:calc(var(--nav-h) + var(--space-2));
-  right:var(--space-3);
-  font-family:var(--font-display);
-  font-weight:900;
-  font-size:clamp(7rem,24vw,22rem);
-  line-height:.8;
-  letter-spacing:-.04em;
-  color:transparent;
-  -webkit-text-stroke:2px var(--numeral,var(--c-black)); /* currentColor is transparent here, so name the colour */
-  opacity:.4;
-  pointer-events:none;
-}
 .stack__inner{
   max-width:1100px;
   width:100%;
@@ -771,33 +771,78 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 .case__card{
   display:grid;
-  grid-template-columns:1.1fr 1fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   gap:var(--space-5);
   align-items:center;
-  border:2px solid rgba(246,246,241,.2);
-  padding:var(--space-4);
 }
-.case__card img{
+/* logo tile: the client's own lightbox carries the name, so nothing else repeats it */
+.case__logo{
+  position:relative;
   border:2px solid var(--c-white);
-  width:100%;
-  height:auto;
+  background:var(--c-black);
+  aspect-ratio:1/1;
+  overflow:hidden;
 }
-.case__index{
+.case__logo img{
+  width:100%;height:100%;
+  object-fit:cover;
+}
+.case__corner{
+  position:absolute;
+  z-index:2;
+  width:44px;height:44px;
+  border:0 solid var(--c-green);
+  pointer-events:none;
+}
+.case__corner--tl{top:12px;left:12px;border-width:2px 0 0 2px;}
+.case__corner--br{bottom:12px;right:12px;border-width:0 2px 2px 0;}
+.case__meta{
   font-family:var(--font-mono);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:.85rem;
   color:var(--c-green);
-  font-size:1rem;
 }
 .case__info h3{
-  font-size:clamp(2rem,5vw,3.2rem);
-  margin-top:var(--space-1);
+  font-size:clamp(2.2rem,5.2vw,4.2rem);
+  margin-top:var(--space-2);
 }
-.case__info p{
+.case__work{
+  list-style:none;
+  margin:var(--space-4) 0 0;
+  padding:0;
+  border-bottom:2px solid rgba(246,246,241,.22);
+}
+.case__work li{
+  display:flex;
+  align-items:baseline;
+  gap:var(--space-3);
+  padding:.9rem .25rem;
+  border-top:2px solid rgba(246,246,241,.22);
+  font-family:var(--font-display);
+  font-weight:900;
+  text-transform:uppercase;
+  font-size:clamp(1.3rem,2.4vw,1.9rem);
+  letter-spacing:-.01em;
+  transition:padding-left .3s var(--ease-brutal),color .2s;
+}
+.case__work li:hover{padding-left:1rem;color:var(--c-green);}
+.case__actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-3);
+  margin-top:var(--space-4);
+}
+.case__handle{
   font-family:var(--font-mono);
-  opacity:.75;
-  margin-top:var(--space-1);
+  font-size:.9rem;
+  border-bottom:2px solid var(--c-white);
+  padding-bottom:2px;
+  transition:color .2s,border-color .2s;
 }
-.case__info .btn{margin-top:var(--space-4);}
-
+.case__handle:hover,.case__handle:focus-visible{color:var(--c-green);border-color:var(--c-green);}
 /* ============================================
    CTA
    ============================================ */

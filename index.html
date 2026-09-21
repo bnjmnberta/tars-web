@@ -44,37 +44,23 @@
 <div class="menu" id="menu" data-menu role="dialog" aria-modal="true" aria-label="Menú principal" inert>
   <nav class="menu__nav" aria-label="Navegación principal">
     <a class="menu__link" href="#servicios" data-menu-link style="--i:0;--hue:var(--c-green)">
-      <span class="menu__idx" aria-hidden="true">01</span>
       <span class="menu__txt"><span class="menu__txt-in">Servicios</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
     <a class="menu__link" href="#clientes" data-menu-link style="--i:1;--hue:var(--c-blue)">
-      <span class="menu__idx" aria-hidden="true">02</span>
       <span class="menu__txt"><span class="menu__txt-in">Clientes</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
     <a class="menu__link" href="#contacto" data-menu-link style="--i:2;--hue:var(--c-yellow)">
-      <span class="menu__idx" aria-hidden="true">03</span>
       <span class="menu__txt"><span class="menu__txt-in">Contacto</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
   </nav>
-  <aside class="menu__side">
-    <p class="menu__kicker">Servicios</p>
-    <ul class="menu__tags">
-      <li><a href="#servicios" data-menu-link>Logos</a></li>
-      <li><a href="#servicios" data-menu-link>Flyers | Videos</a></li>
-      <li><a href="#servicios" data-menu-link>Gestión de Redes</a></li>
-      <li><a href="#servicios" data-menu-link>Marketing Inmobiliario</a></li>
-      <li><a href="#servicios" data-menu-link>Diseño Web</a></li>
-    </ul>
-    <p class="menu__kicker">Escribinos</p>
-    <ul class="menu__contact">
-      <li><a href="https://wa.me/5490000000000" target="_blank" rel="noopener">WhatsApp</a></li>
-      <li><a href="https://instagram.com/tars.estudio" target="_blank" rel="noopener">Instagram</a></li>
-      <li><a href="mailto:hola@tars.studio">hola@tars.studio</a></li>
-    </ul>
-  </aside>
+  <div class="menu__foot">
+    <a class="menu__social" href="https://wa.me/5490000000000" target="_blank" rel="noopener" style="--hue:var(--c-green)"><span>WhatsApp</span><span aria-hidden="true">↗</span></a>
+    <a class="menu__social" href="https://instagram.com/tars.estudio" target="_blank" rel="noopener" style="--hue:var(--c-blue)"><span>Instagram</span><span aria-hidden="true">↗</span></a>
+    <a class="menu__social" href="mailto:hola@tars.studio" style="--hue:var(--c-yellow)"><span>Mail</span><span aria-hidden="true">↗</span></a>
+  </div>
 </div>
 
 <main id="main">
@@ -105,6 +91,24 @@
           </a>
         </div>
       </div>
+
+      <div class="hero__trail" data-trail aria-hidden="true">
+        <img src="assets/trail/t01.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t02.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t03.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t04.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t05.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t06.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t07.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t08.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t09.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t10.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t11.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t12.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t13.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t14.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/t15.jpg" alt="" width="600" height="800">
+      </div>
     </div>
   </section>
 
@@ -117,14 +121,13 @@
 
   <section class="services" id="servicios">
     <div class="services__head">
-      <span class="services__kicker">(01)</span>
       <h2 data-reveal>Nuestros servicios</h2>
     </div>
 
     <div class="stack">
       <article class="stack__item stack__item--green">
         <div class="stack__inner">
-          <span class="stack__index">01 / Identidad</span>
+          <span class="stack__index">Identidad</span>
           <h3>Logos</h3>
           <div class="tags"><span>Manual de Marca</span><span>Rediseño</span></div>
         </div>
@@ -132,7 +135,7 @@
 
       <article class="stack__item stack__item--blue">
         <div class="stack__inner">
-          <span class="stack__index">02 / Gráfica</span>
+          <span class="stack__index">Gráfica</span>
           <h3>Flyers | Videos</h3>
           <div class="tags"><span>Eventos</span><span>Publicidad</span><span>Deportivos</span></div>
         </div>
@@ -140,7 +143,7 @@
 
       <article class="stack__item stack__item--yellow">
         <div class="stack__inner">
-          <span class="stack__index">03 / Social</span>
+          <span class="stack__index">Social</span>
           <h3>Gestión de Redes</h3>
           <div class="tags"><span>Creación de Contenidos</span><span>CM</span><span>Ads</span></div>
         </div>
@@ -148,7 +151,7 @@
 
       <article class="stack__item stack__item--maroon">
         <div class="stack__inner">
-          <span class="stack__index">04 / Real Estate</span>
+          <span class="stack__index">Real Estate</span>
           <h3>Marketing Inmobiliario</h3>
           <div class="tags"><span>Fotografía</span><span>Drone</span><span>Grabación y Edición</span><span>Brokers</span></div>
         </div>
@@ -156,7 +159,7 @@
 
       <article class="stack__item stack__item--cyan">
         <div class="stack__inner">
-          <span class="stack__index">05 / Digital</span>
+          <span class="stack__index">Digital</span>
           <h3>Diseño Web</h3>
           <div class="tags"><span>UX/UI</span><span>Landing</span><span>Tiendas</span><span>Optimización de Conversión</span></div>
           <div class="stack__cta">
@@ -168,23 +171,32 @@
   </section>
 
   <section class="case" id="clientes">
-    <p class="case__label" data-reveal>(02) Clientes</p>
+    <p class="case__label" data-reveal>Clientes</p>
     <div class="case__card" data-reveal>
-      <img src="assets/case-santafe.png" alt="Presentación del caso Santa Fe Propiedades, con logo, portada y etiquetas de servicios prestados." loading="lazy">
+      <div class="case__logo">
+        <span class="case__corner case__corner--tl" aria-hidden="true"></span>
+        <span class="case__corner case__corner--br" aria-hidden="true"></span>
+        <img src="assets/santafe-logo-box.jpg" alt="Santa Fe Propiedades" width="680" height="640" loading="lazy">
+      </div>
       <div class="case__info">
-        <span class="case__index">01</span>
-        <h3>Santa Fe Propiedades</h3>
-        <p>Inmobiliaria · @santafepropiedades</p>
-        <div class="tags">
-          <span>Diseño</span><span>Ecosistema Digital</span><span>Fotografía</span><span>Filmación</span><span>Edición</span>
+        <p class="case__meta">Cliente · Inmobiliaria</p>
+        <h3>Todo su ecosistema digital.</h3>
+        <ol class="case__work" aria-label="Trabajos realizados">
+          <li>Diseño</li>
+          <li>Fotografía</li>
+          <li>Filmación</li>
+          <li>Edición</li>
+        </ol>
+        <div class="case__actions">
+          <a href="https://instagram.com/santafepropiedades" class="case__handle" target="_blank" rel="noopener">@santafepropiedades <span aria-hidden="true">↗</span></a>
+          <a href="#contacto" class="btn">Quiero algo así <span aria-hidden="true">→</span></a>
         </div>
-        <a href="#contacto" class="btn">Ver caso completo <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
 
   <section class="cta" id="contacto">
-    <p class="cta__label" data-reveal>(03) Contacto</p>
+    <p class="cta__label" data-reveal>Contacto</p>
     <h2 data-reveal>¿Charlamos de tu <span class="outline">proyecto?</span></h2>
     <div class="cta__buttons" data-reveal>
       <a href="https://wa.me/5490000000000?text=Hola%20TARS%2C%20quiero%20info" class="btn btn--primary" target="_blank" rel="noopener">WhatsApp</a>

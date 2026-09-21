@@ -21,6 +21,7 @@
     setupStackReveals();
     setupHeroDepth();
     setupMetalText();
+    setupHeroTrail();
     setupAnchorScroll();
     whenLoaderDone(setupHeroIntro);
   });
@@ -85,9 +86,7 @@
   }
 
   /* ---------- full-screen menu (animation is pure CSS; this only owns state + a11y) ----------
-     click/keyboard toggles it everywhere; on hover-capable pointers, resting on the button
-     for a beat opens it too (Unseen-style) — a click right after a hover-open is ignored so
-     the two gestures can't cancel each other. */
+     opens and closes only on click / keyboard activation of the Menú button — never on hover. */
   function setupMenu() {
     var btn = document.querySelector('[data-menu-toggle]');
     var menu = document.querySelector('[data-menu]');
@@ -97,10 +96,8 @@
     var inertTargets = [document.getElementById('main'), document.querySelector('.footer')];
     var logo = document.querySelector('.nav__logo');
     var isOpen = false;
-    var openedAt = 0;
-    var hoverTimer = null;
 
-    function setOpen(open, viaKeyboardOrClick) {
+    function setOpen(open) {
       if (open === isOpen) return;
       isOpen = open;
       menu.classList.toggle('is-open', open);
@@ -116,26 +113,12 @@
         // the bar may already be tucked away by scroll-direction autohide; the Cerrar button lives in it
         var bar = document.querySelector('[data-nav]');
         if (bar) bar.classList.remove('nav--hidden');
-        openedAt = Date.now();
-        if (viaKeyboardOrClick) {
-          var first = menu.querySelector('[data-menu-link]');
-          if (first) window.setTimeout(function () { first.focus({ preventScroll: true }); }, 60);
-        }
+        var first = menu.querySelector('[data-menu-link]');
+        if (first) window.setTimeout(function () { first.focus({ preventScroll: true }); }, 60);
       }
     }
 
-    btn.addEventListener('click', function () {
-      if (Date.now() - openedAt < 500 && isOpen) return; // ignore the click that follows a hover-open
-      setOpen(!isOpen, true);
-    });
-
-    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      btn.addEventListener('mouseenter', function () {
-        if (isOpen) return;
-        hoverTimer = window.setTimeout(function () { setOpen(true, false); }, 220);
-      });
-      btn.addEventListener('mouseleave', function () { window.clearTimeout(hoverTimer); });
-    }
+    btn.addEventListener('click', function () { setOpen(!isOpen); });
 
     // leaving through any link (section, contact, or the logo) closes it; the anchor handler then scrolls
     menu.querySelectorAll('a').forEach(function (a) {
@@ -429,6 +412,85 @@
         q.rx(0); q.ry(0); q.tz(0); q.shine(50);
         letters[i].style.filter = 'none';
       });
+    });
+  }
+
+  /* ---------- hero image trail: every ~100px of pointer travel, the next image drops at the
+     cursor (eased position), glides to it over 1.8s, then vanishes; later images stack on top.
+     Mouse: follows the pointer. Touch: no hover exists, so a random image flashes every ~0.9s. ---------- */
+  function setupHeroTrail() {
+    var hero = document.querySelector('.hero');
+    var box = document.querySelector('[data-trail]');
+    if (!hero || !box || reduceMotion || !hasGSAP) return;
+    var imgs = [].slice.call(box.querySelectorAll('img'));
+    if (!imgs.length) return;
+
+    var THRESHOLD = 100; // px of travel before the next image
+    var isTouch = window.matchMedia('(hover: none)').matches;
+    var index = 0;
+    var z = 1;
+
+    function place(img, x, y) {
+      // offsetWidth/Height are layout sizes: getBoundingClientRect would include the leftover
+      // scale(2) from the previous run and push the image off-centre from the cursor
+      var b = box.getBoundingClientRect();
+      return { x: x - b.left - img.offsetWidth / 2, y: y - b.top - img.offsetHeight / 2 };
+    }
+
+    if (isTouch) {
+      var inView = true;
+      if (typeof IntersectionObserver === 'function') {
+        new IntersectionObserver(function (e) { inView = e[0].isIntersecting; }, { threshold: 0.2 }).observe(hero);
+      }
+      window.setInterval(function () {
+        if (!inView || document.hidden) return;
+        var img = imgs[index]; index = (index + 1) % imgs.length;
+        var b = box.getBoundingClientRect();
+        var w = img.offsetWidth || 160;
+        var h = img.offsetHeight || 210;
+        gsap.killTweensOf(img);
+        gsap.set(img, { x: Math.random() * Math.max(0, b.width - w), y: Math.random() * Math.max(0, b.height - h), opacity: 1, scale: 1, zIndex: z++ });
+        gsap.to(img, { opacity: 0, duration: 0, delay: 0.6 });
+      }, 900);
+      return;
+    }
+
+    var mouse = { x: 0, y: 0 };
+    var last = { x: 0, y: 0 };
+    var eased = { x: 0, y: 0 };
+    var over = false;
+
+    hero.addEventListener('mouseenter', function (e) {
+      over = true;
+      mouse.x = last.x = eased.x = e.clientX;
+      mouse.y = last.y = eased.y = e.clientY;
+    });
+    hero.addEventListener('mouseleave', function () { over = false; });
+    window.addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+
+    function show() {
+      var img = imgs[index];
+      var from = place(img, eased.x, eased.y);
+      var to = place(img, mouse.x, mouse.y);
+      gsap.killTweensOf(img);
+      gsap.timeline()
+        .set(img, { opacity: 1, scale: 1, zIndex: z, x: from.x, y: from.y })
+        .to(img, { duration: 1.8, ease: 'expo.out', x: to.x, y: to.y })
+        .to(img, { duration: 0, opacity: 0 }, 0.8)
+        .to(img, { duration: 0, scale: 2 }, 0.8);
+      z++;
+      index = (index + 1) % imgs.length;
+    }
+
+    gsap.ticker.add(function () {
+      if (!over) return;
+      eased.x += (mouse.x - eased.x) * 0.1;
+      eased.y += (mouse.y - eased.y) * 0.1;
+      if (Math.hypot(mouse.x - last.x, mouse.y - last.y) > THRESHOLD) {
+        show();
+        last.x = mouse.x;
+        last.y = mouse.y;
+      }
     });
   }
 })();
