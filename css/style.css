@@ -431,10 +431,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   position:relative;
   width:100%;
   min-height:100svh;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  padding:calc(var(--nav-h) + var(--space-4)) var(--space-3) var(--space-5);
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto; /* row 1: giant wordmark takes whatever is left above the headline block */
+  padding:calc(var(--nav-h) + var(--space-3)) var(--space-3) var(--space-5);
 }
 .hero__video{
   position:absolute;
@@ -442,14 +441,30 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   width:100%;height:100%;
   object-fit:cover;
   z-index:0;
-  transform:translateZ(0) scale(1.16);
-  will-change:transform;
+  pointer-events:none;
 }
-.hero__overlay{
-  position:absolute;inset:0;z-index:1;
-  background:
-    linear-gradient(180deg, rgba(10,10,10,.82) 0%, rgba(10,10,10,.78) 45%, rgba(10,10,10,.96) 100%); /* dark enough that the image trail reads clearly over the video */
-  transform:translateZ(0) scale(1.16);
+/* giant wordmark (Analogue-style): solid white on black, sized to the space above the headline so
+   the two never overlap — container query units (cqh) read that leftover height directly */
+.hero__bgword{
+  position:relative;
+  z-index:1;
+  container-type:size;
+  display:grid;
+  place-items:center;
+  min-height:0;
+  pointer-events:none;
+  user-select:none;
+}
+.hero__bgword > span{
+  display:block;
+  text-align:center;
+  font-family:var(--font-display);
+  font-weight:900;
+  text-transform:uppercase;
+  font-size:min(22vw,50cqh);
+  line-height:.8;
+  letter-spacing:-.06em;
+  color:var(--c-white);
 }
 .hero__frame{
   position:absolute;
@@ -492,20 +507,21 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   text-shadow:0 1px 14px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8);
   margin-bottom:var(--space-2);
 }
-.hero__title{
-  font-size:clamp(2.8rem,9vw,7rem);
-  overflow:hidden;
-}
-.hero__title > span{
+.hero__bgline{
   display:block;
+  overflow:hidden; /* mask for the rise-in entrance */
+  padding:.05em .1em; /* side room: negative tracking makes the line box narrower than the ink, and the mask would clip the last letter */
+}
+.hero__bgline i{display:block;font-style:normal;will-change:transform;}
+.sr-only{
+  position:absolute;
+  width:1px;height:1px;
+  margin:-1px;padding:0;
   overflow:hidden;
+  clip:rect(0 0 0 0);
+  white-space:nowrap;
+  border:0;
 }
-.hero__title span > i{
-  display:inline-block;
-  font-style:normal;
-  will-change:transform;
-}
-.hero__title span > i:not(.metal-text){text-shadow:0 2px 28px rgba(0,0,0,.55);}
 
 /* ---- metallic 3D letters: brushed-steel fill + a dark offset copy behind
    each glyph (extrusion), letters tilt on their own Z-plane via JS/mouse ---- */
@@ -599,7 +615,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   z-index:3;
   width:min(160px,22vw);
   opacity:.9;
-  mix-blend-mode:screen; /* PNG ships with a black backdrop — screen drops it so no box shows over the video */
+  mix-blend-mode:screen; /* PNG ships with a black backdrop — screen drops it so no box shows */
   transform:translateZ(0);
   will-change:transform;
 }
@@ -630,7 +646,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   position:absolute;
   z-index:4;
   left:var(--space-3);
-  top:calc(var(--nav-h) + var(--space-4));
+  top:calc(var(--nav-h) + var(--space-3));
   width:44px;height:44px;
   display:flex;align-items:center;justify-content:center;
   background:rgba(10,10,10,.55);
@@ -657,8 +673,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 
 @media (prefers-reduced-motion: reduce){
   .hero{perspective:none;}
-  .hero__video,
-  .hero__overlay,
   .hero__frame,
   .hero__content,
   .hero__brand{transform:none !important;}
@@ -672,29 +686,31 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   border-bottom:2px solid var(--c-white);
   background:var(--c-black);
   overflow:hidden;
-  padding:var(--space-2) 0;
+  padding:var(--space-3) 0;
   position:relative;
   z-index:2;
 }
 .marquee__track{
   display:flex;
   width:max-content;
-  animation:marquee 22s linear infinite;
+  animation:marquee 45s linear infinite;
 }
-.marquee__track span{
+.marquee__item{
+  display:inline-flex;
+  align-items:center;
+  gap:.28em;
+  padding:0 1.2rem;
   font-family:var(--font-display);
   font-weight:900;
   text-transform:uppercase;
-  font-size:clamp(1.4rem,4vw,2.2rem);
-  padding:0 1.5rem;
+  font-size:clamp(2.4rem,7.5vw,6.5rem);
+  line-height:1.05;
+  letter-spacing:-.03em;
   white-space:nowrap;
-  -webkit-text-stroke:1.5px var(--c-white);
-  color:transparent;
-}
-.marquee__track span:nth-child(even){
-  -webkit-text-stroke:0;
   color:var(--c-white);
 }
+.marquee__item i{font-style:normal;}
+.marquee__sep{color:var(--c-green);font-weight:900;margin-left:.4em;}
 @keyframes marquee{
   from{transform:translateX(0);}
   to{transform:translateX(-50%);}
@@ -968,8 +984,4 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .case{padding-left:var(--space-2);padding-right:var(--space-2);}
   .footer__top{flex-direction:column;}
 }
-
-@media (max-width:480px){
-  .hero__video,.hero__pause{display:none;}
-  .hero{background:var(--c-black) url('../assets/hero-poster.jpg') center/cover no-repeat;}
 }

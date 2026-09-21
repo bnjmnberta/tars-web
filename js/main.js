@@ -16,9 +16,9 @@
     setupMenu();
     setupNavAutohide();
     setupToTop();
-    setupHeroVideo();
     setupReveals();
     setupStackReveals();
+    setupHeroVideo();
     setupHeroDepth();
     setupMetalText();
     setupHeroTrail();
@@ -173,14 +173,14 @@
     }, { passive: true });
   }
 
-  /* ---------- hero video: pause for reduced motion / small screens ---------- */
+  /* ---------- hero background video: starts paused for reduced motion, stops off-screen,
+     and the pause button (WCAG 2.2.2) sticks even after scrolling away and back ---------- */
   function setupHeroVideo() {
     var video = document.querySelector('[data-hero-video]');
     if (!video) return;
 
     var toggle = document.querySelector('[data-video-toggle]');
-    var smallScreen = window.matchMedia('(max-width: 480px)').matches;
-    var userPaused = reduceMotion || smallScreen;
+    var userPaused = reduceMotion;
 
     function syncToggle() {
       if (!toggle) return;
@@ -194,7 +194,6 @@
     }
     syncToggle();
 
-    // WCAG 2.2.2: autoplaying motion needs a way to stop it, and that choice must survive scrolling
     if (toggle) {
       toggle.addEventListener('click', function () {
         userPaused = !userPaused;
@@ -203,17 +202,13 @@
       });
     }
 
-    if (typeof IntersectionObserver === 'function' && !smallScreen) {
-      var io = new IntersectionObserver(function (entries) {
+    if (typeof IntersectionObserver === 'function') {
+      new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting && !userPaused) {
-            video.play().catch(function () {});
-          } else {
-            video.pause();
-          }
+          if (entry.isIntersecting && !userPaused) { video.play().catch(function () {}); }
+          else { video.pause(); }
         });
-      }, { threshold: 0.1 });
-      io.observe(video);
+      }, { threshold: 0.1 }).observe(video);
     }
   }
 
@@ -239,9 +234,9 @@
     items.forEach(function (el) { io.observe(el); });
   }
 
-  /* ---------- hero title intro ---------- */
+  /* ---------- hero intro: TARS / STUDIO rise out of their masks ---------- */
   function setupHeroIntro() {
-    var lines = document.querySelectorAll('.hero__title i');
+    var lines = document.querySelectorAll('.hero__bgline i');
     var brand = document.querySelector('.hero__brand');
     if (!lines.length) return;
 
@@ -261,9 +256,6 @@
     if (brand) {
       tl.from(brand, { opacity: 0, y: -16, duration: 0.6, ease: 'power2.out' }, '-=0.5');
     }
-    // the line masks (overflow:hidden) only exist to hide the slide-up entrance;
-    // drop them afterward so the metal letters can tilt/pop past the line box on mouse move
-    tl.set(document.querySelectorAll('.hero__title span'), { overflow: 'visible' });
   }
 
   /* ---------- staggered reveal of tags/CTA inside each sticky service block ---------- */
@@ -309,8 +301,6 @@
     var factor = isSmall ? 0.55 : 1; // tone down travel distance on small screens
 
     var layers = [
-      { el: document.querySelector('.hero__video'), z: -140 },
-      { el: document.querySelector('.hero__overlay'), z: -140 },
       { el: document.querySelector('.hero__frame'), z: 45 },
       { el: document.querySelector('.hero__content'), z: 75 },
       { el: document.querySelector('.hero__brand'), z: 115 }
@@ -336,23 +326,27 @@
     });
   }
 
-  /* ---------- metallic 3D letters: split "se mueven." into chars, tilt each toward the cursor ---------- */
+  /* ---------- metallic 3D letters: split every [data-metal] run into chars and tilt each toward the
+     cursor. The runs live in the scrolling marquee, so their positions change every frame:
+     letters are only measured while the pointer is near their band, and reset when it leaves. ---------- */
   function setupMetalText() {
-    var wrap = document.querySelector('[data-metal]');
-    if (!wrap) return;
+    var wraps = [].slice.call(document.querySelectorAll('[data-metal]'));
+    if (!wraps.length) return;
 
-    var fullText = wrap.textContent;
-    wrap.textContent = '';
-    var letters = fullText.split('').map(function (ch) {
-      var span = document.createElement('span');
-      span.className = 'metal-letter';
-      var glyph = ch === ' ' ? ' ' : ch;
-      span.textContent = glyph;
-      span.setAttribute('data-char', glyph);
-      wrap.appendChild(span);
-      return span;
+    var groups = wraps.map(function (wrap) {
+      var fullText = wrap.textContent;
+      wrap.textContent = '';
+      var letters = fullText.split('').map(function (ch) {
+        var span = document.createElement('span');
+        span.className = 'metal-letter';
+        var glyph = ch === ' ' ? '\u00A0' : ch; // a plain space inside an inline-block collapses to nothing
+        span.textContent = glyph;
+        span.setAttribute('data-char', glyph);
+        wrap.appendChild(span);
+        return span;
+      });
+      return { band: wrap.closest('.marquee') || wrap, letters: letters, active: false, quick: null };
     });
-    wrap.setAttribute('aria-hidden', 'true'); // h1 already carries the full text via aria-label
 
     var isTouch = window.matchMedia('(hover: none)').matches;
     if (reduceMotion || isTouch || !hasGSAP) return;
@@ -361,40 +355,54 @@
     var MAX_TILT = 42; // deg
     var MAX_POP = 58; // px translateZ at the cursor's exact position
 
-    var quick = letters.map(function (el) {
-      return {
-        rx: gsap.quickTo(el, 'rotationX', { duration: 0.45, ease: 'power3.out' }),
-        ry: gsap.quickTo(el, 'rotationY', { duration: 0.45, ease: 'power3.out' }),
-        tz: gsap.quickTo(el, 'z', { duration: 0.45, ease: 'power3.out' }),
-        shine: gsap.quickTo(el, '--shine', { duration: 0.35, ease: 'power2.out' })
-      };
+    groups.forEach(function (g) {
+      g.quick = g.letters.map(function (el) {
+        return {
+          rx: gsap.quickTo(el, 'rotationX', { duration: 0.45, ease: 'power3.out' }),
+          ry: gsap.quickTo(el, 'rotationY', { duration: 0.45, ease: 'power3.out' }),
+          tz: gsap.quickTo(el, 'z', { duration: 0.45, ease: 'power3.out' }),
+          shine: gsap.quickTo(el, '--shine', { duration: 0.35, ease: 'power2.out' })
+        };
+      });
     });
+
+    function reset(g) {
+      g.quick.forEach(function (q, i) {
+        q.rx(0); q.ry(0); q.tz(0); q.shine(50);
+        g.letters[i].style.filter = 'none';
+      });
+      g.active = false;
+    }
 
     var ticking = false;
     var lastX = 0, lastY = 0;
 
     function applyTilt() {
       ticking = false;
-      letters.forEach(function (el, i) {
-        var r = el.getBoundingClientRect();
-        var cx = r.left + r.width / 2;
-        var cy = r.top + r.height / 2;
-        var dx = lastX - cx;
-        var dy = lastY - cy;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        var influence = Math.max(0, 1 - dist / TILT_RADIUS);
-        var ry = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (dx / 11) * influence);
-        var rx = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (-dy / 11) * influence);
-        quick[i].ry(ry);
-        quick[i].rx(rx);
-        quick[i].tz(MAX_POP * influence);
-        // brushed-metal highlight slides across the glyph as it turns, like light catching a tilted blade
-        quick[i].shine(50 + gsap.utils.clamp(-50, 50, ry * 1.6));
-        // shadow leans away from the tilt so the pop toward the viewer actually reads as depth
-        // no shadow at rest (keeps the letters crisp/bright over the video); it grows only as a letter lifts toward the cursor
-        el.style.filter = influence < 0.02 ? 'none' :
-          'drop-shadow(' + (-ry * 0.35).toFixed(1) + 'px ' + (rx * -0.35).toFixed(1) +
-          'px ' + (influence * 12).toFixed(1) + 'px rgba(0,0,0,' + (influence * 0.6).toFixed(2) + '))';
+      groups.forEach(function (g) {
+        var band = g.band.getBoundingClientRect();
+        var near = lastY > band.top - TILT_RADIUS && lastY < band.bottom + TILT_RADIUS &&
+                   band.bottom > 0 && band.top < window.innerHeight;
+        if (!near) { if (g.active) reset(g); return; }
+        g.active = true;
+        g.letters.forEach(function (el, i) {
+          var r = el.getBoundingClientRect();
+          var dx = lastX - (r.left + r.width / 2);
+          var dy = lastY - (r.top + r.height / 2);
+          var influence = Math.max(0, 1 - Math.sqrt(dx * dx + dy * dy) / TILT_RADIUS);
+          var ry = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (dx / 11) * influence);
+          var rx = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (-dy / 11) * influence);
+          var q = g.quick[i];
+          q.ry(ry);
+          q.rx(rx);
+          q.tz(MAX_POP * influence);
+          // brushed-metal highlight slides across the glyph as it turns, like light catching a tilted blade
+          q.shine(50 + gsap.utils.clamp(-50, 50, ry * 1.6));
+          // no shadow at rest (keeps the letters crisp); it grows only as a letter lifts toward the cursor
+          el.style.filter = influence < 0.02 ? 'none' :
+            'drop-shadow(' + (-ry * 0.35).toFixed(1) + 'px ' + (rx * -0.35).toFixed(1) +
+            'px ' + (influence * 12).toFixed(1) + 'px rgba(0,0,0,' + (influence * 0.6).toFixed(2) + '))';
+        });
       });
     }
 
@@ -407,12 +415,7 @@
       }
     }, { passive: true });
 
-    window.addEventListener('mouseleave', function () {
-      quick.forEach(function (q, i) {
-        q.rx(0); q.ry(0); q.tz(0); q.shine(50);
-        letters[i].style.filter = 'none';
-      });
-    });
+    window.addEventListener('mouseleave', function () { groups.forEach(reset); });
   }
 
   /* ---------- hero image trail: every ~100px of pointer travel, the next image drops at the
@@ -437,23 +440,52 @@
       return { x: x - b.left - img.offsetWidth / 2, y: y - b.top - img.offsetHeight / 2 };
     }
 
-    if (isTouch) {
-      var inView = true;
-      if (typeof IntersectionObserver === 'function') {
-        new IntersectionObserver(function (e) { inView = e[0].isIntersecting; }, { threshold: 0.2 }).observe(hero);
-      }
-      window.setInterval(function () {
-        if (!inView || document.hidden) return;
-        var img = imgs[index]; index = (index + 1) % imgs.length;
-        var b = box.getBoundingClientRect();
-        var w = img.offsetWidth || 160;
-        var h = img.offsetHeight || 210;
-        gsap.killTweensOf(img);
-        gsap.set(img, { x: Math.random() * Math.max(0, b.width - w), y: Math.random() * Math.max(0, b.height - h), opacity: 1, scale: 1, zIndex: z++ });
-        gsap.to(img, { opacity: 0, duration: 0, delay: 0.6 });
-      }, 900);
-      return;
+    /* Ambient layer (Analogue's second effect): while the pointer is still, ONE extra image at a time,
+       next in order, lands at a random spot for 0.6s, then a 0.1s gap, on loop. Moving the mouse hands
+       control back to the trail. Touch has no pointer, so it is always in this mode. */
+    var ambient = document.createElement('img');
+    ambient.alt = '';
+    ambient.width = 600;
+    ambient.height = 800;
+    ambient.setAttribute('aria-hidden', 'true');
+    box.appendChild(ambient);
+
+    var IDLE_MS = 450; // still for this long => ambient takes over
+    var ambientIndex = 0;
+    var heroVisible = true;
+    var lastMoveAt = 0;
+
+    if (typeof IntersectionObserver === 'function') {
+      new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; }, { threshold: 0.2 }).observe(hero);
     }
+
+    function isIdle() { return isTouch || performance.now() - lastMoveAt > IDLE_MS; }
+    function hideAmbient() { ambient.style.opacity = 0; }
+
+    function ambientCycle() {
+      if (document.hidden || !heroVisible || !isIdle()) {
+        hideAmbient();
+        window.setTimeout(ambientCycle, 150);
+        return;
+      }
+      var src = imgs[ambientIndex];
+      ambient.width = src.getAttribute('width');
+      ambient.height = src.getAttribute('height');
+      ambient.src = src.currentSrc || src.src;
+      ambientIndex = (ambientIndex + 1) % imgs.length;
+      var b = box.getBoundingClientRect();
+      var x = Math.random() * Math.max(0, b.width - ambient.offsetWidth);
+      var y = Math.random() * Math.max(0, b.height - ambient.offsetHeight);
+      ambient.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+      ambient.style.opacity = 1;
+      window.setTimeout(function () {
+        hideAmbient();
+        window.setTimeout(ambientCycle, 100);
+      }, 600);
+    }
+    ambientCycle();
+
+    if (isTouch) return;
 
     var mouse = { x: 0, y: 0 };
     var last = { x: 0, y: 0 };
@@ -466,7 +498,12 @@
       mouse.y = last.y = eased.y = e.clientY;
     });
     hero.addEventListener('mouseleave', function () { over = false; });
-    window.addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+    window.addEventListener('mousemove', function (e) {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      lastMoveAt = performance.now();
+      hideAmbient();
+    }, { passive: true });
 
     function show() {
       var img = imgs[index];

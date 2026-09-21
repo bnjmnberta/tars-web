@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/style.css">
-<noscript><style>.loader{display:none}[data-reveal]{opacity:1;transform:none}.hero__title i{transform:none}</style></noscript>
+<noscript><style>.loader{display:none}[data-reveal]{opacity:1;transform:none}.hero__bgline i{transform:none}</style></noscript>
 </head>
 <body>
 
@@ -66,24 +66,20 @@
 <main id="main">
   <section class="hero" id="top">
     <div class="hero__scene">
-      <video class="hero__video" data-hero-video autoplay muted loop playsinline preload="metadata" poster="assets/hero-poster.jpg" aria-hidden="true">
-        <source src="assets/hero-loop-web.mp4" type="video/mp4">
+      <h1 class="sr-only">TARS Studio. Diseñamos marcas que se mueven.</h1>
+      <video class="hero__video" data-hero-video autoplay muted loop playsinline preload="metadata" poster="assets/hero-bg-poster.jpg" aria-hidden="true">
+        <source src="assets/hero-bg.mp4" type="video/mp4">
       </video>
       <button class="hero__pause" type="button" data-video-toggle aria-pressed="false" aria-label="Pausar video de fondo">
         <span class="hero__pause-icon" aria-hidden="true"></span>
       </button>
-      <div class="hero__overlay"></div>
+      <div class="hero__bgword" aria-hidden="true"><span><span class="hero__bgline"><i>TARS</i></span><span class="hero__bgline"><i>STUDIO</i></span></span></div>
       <div class="hero__frame" aria-hidden="true"></div>
 
       <img class="hero__brand" src="assets/logo-lockup.png" alt="" data-reveal>
 
       <div class="hero__content">
         <p class="eyebrow" data-reveal>Estudio de soluciones digitales</p>
-        <h1 class="hero__title" aria-label="Diseñamos marcas que se mueven.">
-          <span><i>Diseñamos</i></span>
-          <span><i>marcas que</i></span>
-          <span><i class="metal-text" data-metal>se mueven.</i></span>
-        </h1>
         <div class="hero__meta">
           <p data-reveal>Logos · Diseño Web · Redes · Flyers / Video · Marketing Inmobiliario</p>
           <a href="#servicios" class="scroll-cue" data-reveal>
@@ -93,29 +89,26 @@
       </div>
 
       <div class="hero__trail" data-trail aria-hidden="true">
-        <img src="assets/trail/t01.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t02.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t03.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t04.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t05.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t06.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t07.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t08.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t09.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t10.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t11.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t12.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t13.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t14.jpg" alt="" width="600" height="800">
-        <img src="assets/trail/t15.jpg" alt="" width="600" height="800">
+        <img src="assets/trail/i01.jpg" alt="" width="800" height="800">
+        <img src="assets/trail/i02.jpg" alt="" width="736" height="736">
+        <img src="assets/trail/i03.jpg" alt="" width="800" height="882">
+        <img src="assets/trail/i04.jpg" alt="" width="378" height="386">
+        <img src="assets/trail/i05.jpg" alt="" width="564" height="564">
+        <img src="assets/trail/i06.jpg" alt="" width="500" height="500">
+        <img src="assets/trail/i07.jpg" alt="" width="735" height="552">
+        <img src="assets/trail/i08.jpg" alt="" width="800" height="800">
+        <img src="assets/trail/i09.jpg" alt="" width="600" height="650">
+        <img src="assets/trail/i10.jpg" alt="" width="800" height="798">
       </div>
     </div>
   </section>
 
   <div class="marquee" aria-hidden="true">
     <div class="marquee__track" data-marquee>
-      <span>Servicios</span><span>Servicios</span><span>Servicios</span><span>Servicios</span>
-      <span>Servicios</span><span>Servicios</span><span>Servicios</span><span>Servicios</span>
+      <span class="marquee__item">Diseñamos marcas que <i class="metal-text" data-metal>se mueven.</i><b class="marquee__sep" aria-hidden="true">/</b></span>
+      <span class="marquee__item">Diseñamos marcas que <i class="metal-text" data-metal>se mueven.</i><b class="marquee__sep" aria-hidden="true">/</b></span>
+      <span class="marquee__item">Diseñamos marcas que <i class="metal-text" data-metal>se mueven.</i><b class="marquee__sep" aria-hidden="true">/</b></span>
+      <span class="marquee__item">Diseñamos marcas que <i class="metal-text" data-metal>se mueven.</i><b class="marquee__sep" aria-hidden="true">/</b></span>
     </div>
   </div>
 
