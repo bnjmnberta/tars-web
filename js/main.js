@@ -14,6 +14,7 @@
 
     setupLenis();
     setupMenu();
+    setupServiceDialog();
     setupNavAutohide();
     setupToTop();
     setupReveals();
@@ -23,8 +24,131 @@
     setupMetalText();
     setupHeroTrail();
     setupAnchorScroll();
+    setupFloatingLogos();
     whenLoaderDone(setupHeroIntro);
   });
+
+  /* ---------- logos that drift freely inside their stage and can be dragged around ---------- */
+  function setupFloatingLogos() {
+    var stages = document.querySelectorAll('[data-float-stage]');
+    if (!stages.length) return;
+
+    stages.forEach(function (stage) {
+      var item = stage.querySelector('[data-float-item]');
+      if (!item) return;
+
+      var DRIFT_SPEED = 0.16; // fixed speed everything settles back to — never inherits drag/throw speed
+      var ROT_SPEED = 0.35; // deg per frame, constant spin
+
+      var sw = 0, sh = 0, iw = 0, ih = 0;
+      var x = 0, y = 0, vx = 0, vy = 0, rotation = 0;
+      var dragging = false, dragOffsetX = 0, dragOffsetY = 0;
+      var lastX = 0, lastY = 0, lastTime = 0;
+
+      function measure() {
+        sw = stage.clientWidth;
+        sh = stage.clientHeight;
+        iw = item.offsetWidth;
+        ih = item.offsetHeight;
+      }
+
+      function randomVelocity() {
+        var angle = Math.random() * Math.PI * 2;
+        return { vx: Math.cos(angle) * DRIFT_SPEED, vy: Math.sin(angle) * DRIFT_SPEED };
+      }
+
+      function apply() {
+        if (!isFinite(x) || !isFinite(y)) { x = 0; y = 0; }
+        item.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + rotation.toFixed(2) + 'deg)';
+      }
+
+      measure();
+      x = Math.random() * Math.max(sw - iw, 0);
+      y = Math.random() * Math.max(sh - ih, 0);
+      var v0 = randomVelocity();
+      vx = v0.vx; vy = v0.vy;
+      apply();
+
+      var BRAKE = 0.03; // how fast speed eases back to DRIFT_SPEED after being thrown — lower = slower brake
+
+      function tick() {
+        if (!reduceMotion) {
+          rotation = (rotation + ROT_SPEED) % 360;
+          if (!dragging) {
+            var mag = Math.sqrt(vx * vx + vy * vy);
+            if (mag < 0.001) {
+              var v = randomVelocity();
+              vx = v.vx; vy = v.vy;
+            } else {
+              var newMag = mag + (DRIFT_SPEED - mag) * BRAKE;
+              vx = (vx / mag) * newMag;
+              vy = (vy / mag) * newMag;
+            }
+            x += vx;
+            y += vy;
+            var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
+            if (x <= 0) { x = 0; vx = Math.abs(vx); }
+            else if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
+            if (y <= 0) { y = 0; vy = Math.abs(vy); }
+            else if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
+          }
+          apply();
+        }
+        requestAnimationFrame(tick);
+      }
+
+      item.addEventListener('pointerdown', function (e) {
+        dragging = true;
+        item.classList.add('is-dragging');
+        try { item.setPointerCapture(e.pointerId); } catch (err) { /* not a real active pointer — drag still works via document-level move */ }
+        var rect = stage.getBoundingClientRect();
+        dragOffsetX = e.clientX - rect.left - x;
+        dragOffsetY = e.clientY - rect.top - y;
+        lastX = e.clientX; lastY = e.clientY; lastTime = performance.now();
+        vx = 0; vy = 0;
+      });
+
+      item.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var rect = stage.getBoundingClientRect();
+        var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
+        x = Math.min(maxX, Math.max(0, e.clientX - rect.left - dragOffsetX));
+        y = Math.min(maxY, Math.max(0, e.clientY - rect.top - dragOffsetY));
+        var now = performance.now();
+        var dt = Math.max(now - lastTime, 1);
+        vx = (e.clientX - lastX) / dt * 16;
+        vy = (e.clientY - lastY) / dt * 16;
+        lastX = e.clientX; lastY = e.clientY; lastTime = now;
+        apply();
+      });
+
+      function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        item.classList.remove('is-dragging');
+        // keep the throw's speed and direction — tick() eases it back down to DRIFT_SPEED
+        // gradually every frame, just cap it so a huge flick doesn't teleport it
+        var mag = Math.sqrt(vx * vx + vy * vy);
+        var MAX_THROW = 8;
+        if (mag > MAX_THROW) {
+          vx = (vx / mag) * MAX_THROW;
+          vy = (vy / mag) * MAX_THROW;
+        }
+      }
+      item.addEventListener('pointerup', endDrag);
+      item.addEventListener('pointercancel', endDrag);
+
+      window.addEventListener('resize', function () {
+        measure();
+        var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
+        x = maxX ? Math.min(x, maxX) : 0;
+        y = maxY ? Math.min(y, maxY) : 0;
+        apply();
+      });
+
+      requestAnimationFrame(tick);
+    });
+  }
 
   /* ---------- run cb once the loading screen (js/loader.js) is gone ---------- */
   function whenLoaderDone(cb) {
@@ -133,6 +257,79 @@
       // keep Tab inside header + menu while it's open
       var stops = [].slice.call(document.querySelectorAll('.nav a, .nav button, .menu a')).filter(function (el) {
         return el.offsetParent !== null && getComputedStyle(el).pointerEvents !== 'none';
+      });
+      if (!stops.length) return;
+      var first = stops[0], last = stops[stops.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+
+  /* ---------- service cards: click (or Enter/Space, cards are tabindex=0) anywhere on a card
+     to open a shared modal with more info about that service. The real "Realiza tu consulta"
+     link on the cyan card is left alone — activating it never reaches this handler's open(). ---------- */
+  function setupServiceDialog() {
+    var dialog = document.querySelector('[data-service-dialog]');
+    var cards = document.querySelectorAll('[data-service]');
+    if (!dialog || !cards.length) return;
+
+    var VARIANTS = ['green', 'blue', 'yellow', 'maroon', 'cyan'];
+    var titleEl = dialog.querySelector('[data-service-dialog-title]');
+    var indexEl = dialog.querySelector('[data-service-dialog-index]');
+    var tagsEl = dialog.querySelector('[data-service-dialog-tags]');
+    var descEl = dialog.querySelector('[data-service-dialog-desc]');
+    var closeBtn = dialog.querySelector('.service-dialog__close');
+    var inertTargets = [document.getElementById('main'), document.querySelector('.footer'), document.querySelector('[data-nav]')];
+    var isOpen = false;
+    var opener = null;
+
+    function open(card) {
+      VARIANTS.forEach(function (v) { dialog.classList.remove('service-dialog--' + v); });
+      var variant = VARIANTS.filter(function (v) { return card.classList.contains('stack__item--' + v); })[0];
+      if (variant) dialog.classList.add('service-dialog--' + variant);
+
+      titleEl.textContent = card.querySelector('h3').textContent;
+      indexEl.textContent = card.querySelector('.stack__index').textContent;
+      tagsEl.innerHTML = card.querySelector('.tags').innerHTML;
+      // the source spans carry GSAP's inline opacity/transform from the scroll-reveal animation —
+      // strip it so the clone always shows at full opacity in its own dialog, regardless of
+      // whether the card behind it has already played its reveal
+      tagsEl.querySelectorAll('span').forEach(function (s) { s.removeAttribute('style'); });
+      descEl.textContent = card.querySelector('.stack__more').textContent;
+
+      opener = card;
+      isOpen = true;
+      var rect = card.getBoundingClientRect();
+      dialog.style.transformOrigin = (rect.left + rect.width / 2) + 'px ' + (rect.top + rect.height / 2) + 'px';
+      dialog.classList.add('is-open');
+      dialog.inert = false;
+      inertTargets.forEach(function (el) { if (el) el.inert = true; });
+      document.body.style.overflow = 'hidden';
+      if (lenis) lenis.stop();
+      window.setTimeout(function () { closeBtn.focus(); }, 60);
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      dialog.classList.remove('is-open');
+      dialog.inert = true;
+      inertTargets.forEach(function (el) { if (el) el.inert = false; });
+      document.body.style.overflow = '';
+      if (lenis) lenis.start();
+      if (opener) opener.focus();
+    }
+
+    dialog.querySelectorAll('[data-service-dialog-close]').forEach(function (el) {
+      el.addEventListener('click', close);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!isOpen) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;
+      var stops = [].slice.call(dialog.querySelectorAll('a, button')).filter(function (el) {
+        return el.offsetParent !== null;
       });
       if (!stops.length) return;
       var first = stops[0], last = stops[stops.length - 1];
