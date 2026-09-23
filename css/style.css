@@ -11,6 +11,12 @@
   --c-maroon:#7a0a0a;
   --c-cyan:#00d9cb;
 
+  --c-green-deep:#00a363;
+  --c-blue-deep:#2260b8;
+  --c-yellow-deep:#b89700;
+  --c-maroon-deep:#580707;
+  --c-cyan-deep:#009c92;
+
   --font-display:'Archivo', 'Arial Black', sans-serif;
   --font-body:'Inter', system-ui, sans-serif;
   --font-mono:'JetBrains Mono', monospace;
@@ -90,7 +96,7 @@ p{margin:0;}
   pointer-events:none;
   background-image:url('../assets/grain.png');
   background-size:420px;
-  opacity:.18;
+  opacity:.08; /* .18 + overlay blend was muddying black text on bright bg (cyan card) toward dark teal */
   mix-blend-mode:overlay;
 }
 
@@ -201,6 +207,7 @@ body.is-loading{overflow:hidden;height:100vh;}
   margin-top:var(--space-2);
 }
 .tags span{
+  display:inline-block;
   border:2px solid currentColor;
   border-radius:999px;
   padding:.4rem 1rem;
@@ -208,6 +215,11 @@ body.is-loading{overflow:hidden;height:100vh;}
   font-size:.8rem;
   font-weight:500;
   text-transform:uppercase;
+  transition:transform .25s var(--ease-brutal),background-color .25s var(--ease-brutal);
+}
+.tags span:hover{
+  transform:translateY(-3px);
+  background-color:rgba(255,255,255,.18);
 }
 
 /* ============================================
@@ -412,6 +424,80 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .menu.is-open{visibility:visible;}
   .menu__txt-in,.menu.is-open .menu__txt-in{transform:none;transition:none;}
   .menu__foot{opacity:1;transform:none;transition:none;}
+}
+
+/* ============================================
+   SERVICE DIALOG — one shared modal, content swapped per card
+   ============================================ */
+.service-dialog{
+  position:fixed;
+  inset:0;
+  z-index:1100;
+  display:flex;
+  align-items:flex-start;
+  overflow-y:auto;
+  padding:calc(var(--nav-h) + var(--space-5)) var(--space-4) var(--space-6);
+  background:var(--c-green);
+  color:var(--c-black);
+  transform-origin:50% 50%; /* JS overwrites this per-click so the grow animation starts from the card that opened it */
+  transform:scale(.25);
+  opacity:0;
+  visibility:hidden;
+  transition:transform .5s var(--ease-brutal),opacity .35s var(--ease-brutal),visibility 0s linear .5s,background .3s;
+}
+.service-dialog.is-open{
+  transform:scale(1);
+  opacity:1;
+  visibility:visible;
+  transition:transform .5s var(--ease-brutal),opacity .35s var(--ease-brutal),visibility 0s,background .3s;
+}
+.service-dialog--green{background:var(--c-green);color:var(--c-black);}
+.service-dialog--blue{background:var(--c-blue);color:var(--c-white);}
+.service-dialog--yellow{background:var(--c-yellow);color:var(--c-black);}
+.service-dialog--maroon{background:var(--c-maroon);color:var(--c-white);}
+.service-dialog--cyan{background:var(--c-cyan);color:var(--c-black);}
+.service-dialog__close{
+  position:fixed;
+  top:var(--space-3);
+  right:var(--space-3);
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border:2px solid currentColor;
+  border-radius:999px;
+  background:transparent;
+  color:inherit;
+  font-size:1.1rem;
+  cursor:pointer;
+  transition:background .25s var(--ease-brutal),color .25s var(--ease-brutal);
+}
+.service-dialog__close:hover,.service-dialog__close:focus-visible{background:var(--c-black);color:var(--c-white);border-color:var(--c-black);}
+.service-dialog__content{max-width:1100px;width:100%;}
+.service-dialog__index{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:1rem;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  opacity:.7;
+}
+.service-dialog__content h3{
+  font-family:var(--font-display);
+  font-weight:900;
+  text-transform:uppercase;
+  font-size:clamp(2.2rem,7.5vw,5.2rem);
+  line-height:.95;
+  margin:.4rem 0 var(--space-4);
+}
+.service-dialog__content .tags{margin-bottom:var(--space-4);}
+.service-dialog__content .tags span{border-color:currentColor;}
+.service-dialog__desc{font-size:clamp(1.05rem,2vw,1.3rem);line-height:1.6;max-width:640px;}
+
+@media (prefers-reduced-motion: reduce){
+  .service-dialog,.service-dialog.is-open{transition:none;transform:none;}
+  .service-dialog{visibility:hidden;opacity:0;}
+  .service-dialog.is-open{visibility:visible;opacity:1;}
 }
 
 /* ============================================
@@ -636,7 +722,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   opacity:0;
   pointer-events:none;
   will-change:transform;
-  box-shadow:0 24px 60px rgba(0,0,0,.55);
+  filter:drop-shadow(0 24px 40px rgba(0,0,0,.55)); /* follows the cut-out shape; box-shadow would draw a rectangle */
 }
 @media (prefers-reduced-motion: reduce){
   .hero__trail{display:none;}
@@ -733,22 +819,92 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   font-size:clamp(2rem,6vw,3.5rem);
 }
 
-.stack{position:relative;}
+/* Each card sits in its own absolutely-positioned .stack__step instead of sharing one flow
+   container. A shared container makes cards release their sticky lock at DIFFERENT scrollY
+   (whichever card has the smallest sticky `top` offset holds on longest) — the last card to
+   arrive ends up the FIRST to peel off and fly away solo, over everyone else still stuck below.
+   Giving each card its own step, sized so step.top + step.height lands on the SAME target
+   scrollY for every card, makes all five release simultaneously and ride up together. */
+.stack{position:relative;height:calc((100vh - var(--nav-h) - 32px) * 5 + 500px + 60vh);padding:0 var(--space-3);}
+.stack__step{position:absolute;left:var(--space-3);right:var(--space-3);}
+.stack__step:nth-child(1){top:0;height:calc((100vh - var(--nav-h) - 32px) * 5 + 276px);}
+.stack__step:nth-child(2){top:calc(100vh - var(--nav-h) - 32px);height:calc((100vh - var(--nav-h) - 32px) * 4 + 332px);}
+.stack__step:nth-child(3){top:calc((100vh - var(--nav-h) - 32px) * 2);height:calc((100vh - var(--nav-h) - 32px) * 3 + 388px);}
+.stack__step:nth-child(4){top:calc((100vh - var(--nav-h) - 32px) * 3);height:calc((100vh - var(--nav-h) - 32px) * 2 + 444px);}
+.stack__step:nth-child(5){top:calc((100vh - var(--nav-h) - 32px) * 4);height:calc((100vh - var(--nav-h) - 32px) + 500px);}
 .stack__item{
   position:sticky;
+  display:block;
+  color:var(--c-black);
+  background:transparent; /* no backing chip on any card — the corner cutout just shows whatever real card sits behind on screen */
+}
+.stack__step:nth-child(1) .stack__item{top:var(--nav-h);}
+.stack__step:nth-child(2) .stack__item{top:calc(var(--nav-h) + 56px);}
+.stack__step:nth-child(3) .stack__item{top:calc(var(--nav-h) + 112px);}
+.stack__step:nth-child(4) .stack__item{top:calc(var(--nav-h) + 168px);}
+.stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 224px);}
+.stack__item--blue{color:var(--c-white);}
+.stack__item--maroon{color:var(--c-white);}
+
+.stack__shape{
+  position:relative;
+  min-height:calc(100vh - var(--nav-h) - 32px); /* fill the screen as much as possible;
+    grows further with page scroll if a card's content ever needs more room */
+  padding:var(--space-5) var(--space-4) var(--space-6);
+  overflow:hidden;
+  border-top-left-radius:35px; /* top corners only — a rounded bottom clashes with the next
+    card's rounded top right below it (double-curve gap). The corner cutout always reveals the
+    real card sitting behind it on screen — never black — thanks to the transparent backing
+    plus the generous -24px overlap above */
+  border-top-right-radius:35px;
+  /* this card's REAL color lives here, not on .stack__item — set explicitly per variant below */
+}
+.stack__expand{margin-top:var(--space-4);}
+.stack__illustration{font-size:3rem;line-height:1;margin-bottom:var(--space-2);}
+.stack__logo-stage{position:relative;width:100%;height:280px;margin-bottom:var(--space-2);}
+.stack__logo-stage img{
+  position:absolute;
   top:0;
-  min-height:100svh;
+  left:0;
+  width:160px;
+  touch-action:none;
+  -webkit-user-drag:none;
+  user-select:none;
+  cursor:grab;
+  filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));
+  will-change:transform;
+}
+.stack__logo-stage img.is-dragging{cursor:grabbing;filter:drop-shadow(0 26px 30px rgba(0,0,0,.35));}
+.stack__more{font-size:1rem;line-height:1.6;max-width:640px;}
+.stack__examples{
+  margin-top:var(--space-4);
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+.stack__examples-track{display:flex;gap:var(--space-3);width:max-content;padding-bottom:var(--space-2);}
+.stack__example-item{
+  width:200px;
+  aspect-ratio:4/5;
+  flex-shrink:0;
+  border:2px dashed currentColor;
+  border-radius:12px;
   display:flex;
   align-items:center;
-  color:var(--c-black);
-  padding:calc(var(--nav-h) + var(--space-4)) var(--space-3) var(--space-5);
-  border-top:2px solid var(--c-black);
+  justify-content:center;
+  opacity:.7;
+  font-family:var(--font-mono);
+  font-size:.85rem;
+  text-transform:uppercase;
+  letter-spacing:.04em;
 }
-.stack__item--green{background:var(--c-green);}
-.stack__item--blue{background:var(--c-blue);}
-.stack__item--yellow{background:var(--c-yellow);}
-.stack__item--maroon{background:var(--c-maroon);color:var(--c-white);}
-.stack__item--cyan{background:var(--c-cyan);}
+.stack__item--green .stack__shape{background:var(--c-green);}
+.stack__item--blue .stack__shape{background:var(--c-blue);}
+.stack__item--yellow .stack__shape{background:var(--c-yellow);}
+.stack__item--maroon .stack__shape{background:var(--c-maroon);}
+.stack__item--cyan .stack__shape{background:var(--c-cyan);}
+.stack__item--cyan .stack__shape{box-shadow:0 24px 50px -16px rgba(0,0,0,.5);}
 
 .stack__inner{
   max-width:1100px;
@@ -757,13 +913,16 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__index{
   font-family:var(--font-mono);
   font-weight:700;
-  font-size:1rem;
+  font-size:.7rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
   opacity:.85;
   display:block;
   margin-bottom:var(--space-2);
 }
 .stack__inner h3{
-  font-size:clamp(2.6rem,9vw,6rem);
+  font-size:clamp(2.2rem,7.5vw,5.2rem);
+  overflow-wrap:break-word; /* long words ("INMOBILIARIO") must not overflow the card on narrow screens */
 }
 .stack__cta{margin-top:var(--space-4);}
 .stack__item--cyan .btn{border-color:var(--c-black);color:var(--c-black);}
@@ -980,8 +1139,22 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 
 @media (max-width:600px){
   :root{--nav-h:64px;}
-  .stack__item{padding-left:var(--space-2);padding-right:var(--space-2);}
+  .stack{height:calc((100vh - var(--nav-h) - 24px) * 5 + 300px + 40vh);padding-left:var(--space-1);padding-right:var(--space-1);}
+  .stack__step{left:var(--space-1);right:var(--space-1);}
+  .stack__step:nth-child(1){height:calc((100vh - var(--nav-h) - 24px) * 5 + 212px);}
+  .stack__step:nth-child(2){top:calc(100vh - var(--nav-h) - 24px);height:calc((100vh - var(--nav-h) - 24px) * 4 + 234px);}
+  .stack__step:nth-child(3){top:calc((100vh - var(--nav-h) - 24px) * 2);height:calc((100vh - var(--nav-h) - 24px) * 3 + 256px);}
+  .stack__step:nth-child(4){top:calc((100vh - var(--nav-h) - 24px) * 3);height:calc((100vh - var(--nav-h) - 24px) * 2 + 278px);}
+  .stack__step:nth-child(5){top:calc((100vh - var(--nav-h) - 24px) * 4);height:calc((100vh - var(--nav-h) - 24px) + 300px);}
+  .stack__step:nth-child(1) .stack__item{top:calc(var(--nav-h) + 22px);}
+  .stack__step:nth-child(2) .stack__item{top:calc(var(--nav-h) + 44px);}
+  .stack__step:nth-child(3) .stack__item{top:calc(var(--nav-h) + 66px);}
+  .stack__step:nth-child(4) .stack__item{top:calc(var(--nav-h) + 88px);}
+  .stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 110px);}
+  .stack__shape{padding-left:var(--space-2);padding-right:var(--space-2);min-height:calc(100vh - var(--nav-h) - 24px);border-top-left-radius:18px;border-top-right-radius:18px;}
+  .stack__inner h3{font-size:clamp(1.6rem,8vw,5.2rem);}
+  .stack__cta{margin-top:var(--space-6);}
+  .stack__cta .btn{padding:.55rem .9rem;font-size:.7rem;min-height:auto;}
   .case{padding-left:var(--space-2);padding-right:var(--space-2);}
   .footer__top{flex-direction:column;}
-}
 }
