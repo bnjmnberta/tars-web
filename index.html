@@ -63,6 +63,16 @@
   </div>
 </div>
 
+<div class="service-dialog" id="service-dialog" data-service-dialog role="dialog" aria-modal="true" aria-labelledby="service-dialog-title" inert>
+  <button type="button" class="service-dialog__close" data-service-dialog-close aria-label="Cerrar">✕</button>
+  <div class="service-dialog__content">
+    <span class="service-dialog__index" data-service-dialog-index></span>
+    <h3 id="service-dialog-title" data-service-dialog-title></h3>
+    <div class="tags" data-service-dialog-tags></div>
+    <p class="service-dialog__desc" data-service-dialog-desc></p>
+  </div>
+</div>
+
 <main id="main">
   <section class="hero" id="top">
     <div class="hero__scene">
@@ -89,16 +99,13 @@
       </div>
 
       <div class="hero__trail" data-trail aria-hidden="true">
-        <img src="assets/trail/i01.jpg" alt="" width="800" height="800">
-        <img src="assets/trail/i02.jpg" alt="" width="736" height="736">
-        <img src="assets/trail/i03.jpg" alt="" width="800" height="882">
-        <img src="assets/trail/i04.jpg" alt="" width="378" height="386">
-        <img src="assets/trail/i05.jpg" alt="" width="564" height="564">
-        <img src="assets/trail/i06.jpg" alt="" width="500" height="500">
-        <img src="assets/trail/i07.jpg" alt="" width="735" height="552">
-        <img src="assets/trail/i08.jpg" alt="" width="800" height="800">
-        <img src="assets/trail/i09.jpg" alt="" width="600" height="650">
-        <img src="assets/trail/i10.jpg" alt="" width="800" height="798">
+        <img src="assets/trail/i01.png" alt="" width="800" height="800">
+        <img src="assets/trail/5c08252bd438d0b5cfb303ee8aa738ca.png" alt="" width="736" height="736">
+        <img src="assets/trail/64b9699d0d7f4011262bd4f28f3670a1.png" alt="" width="500" height="600">
+        <img src="assets/trail/7403d348417c39bb209245588b1d555a.png" alt="" width="506" height="695">
+        <img src="assets/trail/7d04067467b6be7abde3ac4a5ea1a56f.png" alt="" width="736" height="1308">
+        <img src="assets/trail/c928097378a53df70eed84b5e4cd39e9.png" alt="" width="733" height="733">
+        <img src="assets/trail/ee6e8b8ac29c6cd5bc1dfeab049254a3.png" alt="" width="736" height="736">
       </div>
     </div>
   </section>
@@ -118,48 +125,93 @@
     </div>
 
     <div class="stack">
-      <article class="stack__item stack__item--green">
-        <div class="stack__inner">
-          <span class="stack__index">Identidad</span>
-          <h3>Logos</h3>
-          <div class="tags"><span>Manual de Marca</span><span>Rediseño</span></div>
+      <div class="stack__step">
+        <article class="stack__item stack__item--green" data-service tabindex="0">
+        <div class="stack__shape">
+          <div class="stack__inner">
+            <span class="stack__index">Identidad</span>
+            <h3>Logos</h3>
+            <div class="tags"><span>Manual de Marca</span><span>Rediseño</span></div>
+            <div class="stack__expand">
+              <div class="stack__logo-stage" data-float-stage>
+                <img src="assets/examples/logo-de-primera.png" alt="Ejemplo de logo: De Primera Camisetas" data-float-item draggable="false" loading="lazy">
+              </div>
+              <p class="stack__more">Tu marca, desde cero o repensada. Diseño de logo, sistema visual y manual de marca completo: tipografías, colores, usos correctos. Si ya tenés una marca que no te representa más, la rediseñamos sin perder lo que la gente ya reconoce.</p>
+            </div>          </div>
         </div>
-      </article>
+        </article>
+      </div>
 
-      <article class="stack__item stack__item--blue">
-        <div class="stack__inner">
-          <span class="stack__index">Gráfica</span>
-          <h3>Flyers | Videos</h3>
-          <div class="tags"><span>Eventos</span><span>Publicidad</span><span>Deportivos</span></div>
+      <div class="stack__step">
+        <article class="stack__item stack__item--blue" data-service tabindex="0">
+        <div class="stack__shape">
+          <div class="stack__inner">
+            <span class="stack__index">Gráfica</span>
+            <h3>Flyers | Videos</h3>
+            <div class="tags"><span>Eventos</span><span>Publicidad</span><span>Deportivos</span></div>
+            <div class="stack__expand">
+              <div class="stack__illustration" aria-hidden="true">🎬</div>
+              <p class="stack__more">Piezas gráficas y video para redes, eventos y publicidad. Flyers, banners, spots cortos: contenido que se hace notar en el feed y en la cancha. Producción rápida, pensada para el ritmo de cada evento.</p>
+              <div class="stack__examples" data-lenis-prevent>
+                <div class="stack__examples-track">
+                  <div class="stack__example-item"><span>Ejemplo 1</span></div>
+                  <div class="stack__example-item"><span>Ejemplo 2</span></div>
+                  <div class="stack__example-item"><span>Ejemplo 3</span></div>
+                  <div class="stack__example-item"><span>Ejemplo 4</span></div>
+                </div>
+              </div>
+            </div>          </div>
         </div>
-      </article>
+        </article>
+      </div>
 
-      <article class="stack__item stack__item--yellow">
-        <div class="stack__inner">
-          <span class="stack__index">Social</span>
-          <h3>Gestión de Redes</h3>
-          <div class="tags"><span>Creación de Contenidos</span><span>CM</span><span>Ads</span></div>
+      <div class="stack__step">
+        <article class="stack__item stack__item--yellow" data-service tabindex="0">
+        <div class="stack__shape">
+          <div class="stack__inner">
+            <span class="stack__index">Social</span>
+            <h3>Gestión de Redes</h3>
+            <div class="tags"><span>Creación de Contenidos</span><span>CM</span><span>Ads</span></div>
+            <div class="stack__expand">
+              <div class="stack__illustration" aria-hidden="true">📱</div>
+              <p class="stack__more">Manejamos tus redes de punta a punta: calendario de contenidos, community management diario y campañas de Ads con seguimiento de resultados. Menos vueltas, más gente viendo lo que hacés.</p>
+            </div>          </div>
         </div>
-      </article>
+        </article>
+      </div>
 
-      <article class="stack__item stack__item--maroon">
-        <div class="stack__inner">
-          <span class="stack__index">Real Estate</span>
-          <h3>Marketing Inmobiliario</h3>
-          <div class="tags"><span>Fotografía</span><span>Drone</span><span>Grabación y Edición</span><span>Brokers</span></div>
+      <div class="stack__step">
+        <article class="stack__item stack__item--maroon" data-service tabindex="0">
+        <div class="stack__shape">
+          <div class="stack__inner">
+            <span class="stack__index">Real Estate</span>
+            <h3>Marketing Inmobiliario</h3>
+            <div class="tags"><span>Fotografía</span><span>Drone</span><span>Grabación y Edición</span><span>Brokers</span></div>
+            <div class="stack__expand">
+              <div class="stack__illustration" aria-hidden="true">🏠</div>
+              <p class="stack__more">Todo el contenido visual para vender o alquilar más rápido: fotografía profesional, tomas con drone, grabación y edición de video. Trabajamos directo con brokers e inmobiliarias, listo para publicar el mismo día.</p>
+            </div>          </div>
         </div>
-      </article>
+        </article>
+      </div>
 
-      <article class="stack__item stack__item--cyan">
-        <div class="stack__inner">
-          <span class="stack__index">Digital</span>
-          <h3>Diseño Web</h3>
-          <div class="tags"><span>UX/UI</span><span>Landing</span><span>Tiendas</span><span>Optimización de Conversión</span></div>
-          <div class="stack__cta">
-            <a href="#contacto" class="btn">Realiza tu consulta <span aria-hidden="true">→</span></a>
+      <div class="stack__step">
+        <article class="stack__item stack__item--cyan" data-service tabindex="0">
+        <div class="stack__shape">
+          <div class="stack__inner">
+            <span class="stack__index">Digital</span>
+            <h3>Diseño Web</h3>
+            <div class="tags"><span>UX/UI</span><span>Landing</span><span>Tiendas</span><span>Optimización de Conversión</span></div>
+            <div class="stack__expand">
+              <div class="stack__illustration" aria-hidden="true">💻</div>
+              <p class="stack__more">Sitios y tiendas online diseñados para convertir visitas en clientes. UX/UI a medida, landings enfocadas en un objetivo, tiendas listas para vender. Optimizamos cada paso del embudo, no solo el diseño.</p>
+            </div>            <div class="stack__cta">
+              <a href="#contacto" class="btn">Realiza tu consulta <span aria-hidden="true">→</span></a>
+            </div>
           </div>
         </div>
-      </article>
+        </article>
+      </div>
     </div>
   </section>
 
