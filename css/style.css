@@ -769,6 +769,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__item--yellow h3{--longest:5.1;}  /* GESTIÓN */
 .stack__item--maroon h3{--longest:7.8;}  /* INMOBILIARIO */
 .stack__item--cyan h3{--longest:4.3;}    /* DISEÑO */
+.stack__title-in{display:block;}
 .stack__cta{margin-top:var(--space-4);flex-shrink:0;}
 /* one-line title shown in the sliver once the next card covers this one (built by main.js) */
 .stack__peek{
@@ -790,6 +791,113 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 .stack__item--cyan .btn{border-color:var(--c-black);color:var(--c-black);}
 .stack__item--cyan .btn:hover{background:var(--c-black);color:var(--c-cyan);}
+
+/* ============================================
+   PROCESO / CÓMO TRABAJAMOS
+   ============================================ */
+/* on screens with room for it the section is a tall scroll track with a sticky, full-screen
+   stage inside: the stage stays put while the scroll drops each step into place (main.js) */
+.process{
+  position:relative;z-index:2;
+  background:var(--c-black);
+}
+.process__grid{
+  display:grid;
+  grid-template-columns:minmax(0,5fr) minmax(0,7fr);
+  gap:var(--space-5);
+  align-items:center;
+  padding:var(--space-6) var(--space-3);
+}
+@media (min-width:901px) and (min-height:620px){
+  .process{height:420vh;}
+  .process__grid{
+    position:sticky;
+    top:0;
+    height:100vh;
+    padding:calc(var(--nav-h) + var(--space-3)) var(--space-3) var(--space-4);
+  }
+}
+.process__label{
+  font-family:var(--font-mono);
+  color:var(--c-green);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-size:clamp(.9rem,1.1vw,1.1rem);
+  margin-bottom:var(--space-3);
+}
+.process__title{
+  font-family:var(--font-copy);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:-.02em;
+  line-height:.95;
+  font-size:clamp(2.6rem,min(6.2vw,10vh),7.5rem);
+}
+.process__title em{
+  font-family:var(--font-accent);
+  font-style:normal;
+  font-size:1.12em;
+  color:var(--c-green);
+}
+/* steps hang off a vertical rail (placed by main.js from the first node's centre to the last
+   one's); the white fill advances to each node as its step lands */
+.process__track{position:relative;--node:clamp(64px,10vh,104px);}
+.process__rail{
+  position:absolute;
+  left:calc(var(--node) / 2 - 1px);
+  width:2px;
+  background:rgba(246,246,241,.15);
+}
+.process__rail-fill{
+  position:absolute;inset:0;
+  background:var(--c-white);
+  transform-origin:top center;
+}
+.process__steps{list-style:none;margin:0;padding:0;}
+.process__step{
+  position:relative;
+  display:grid;
+  grid-template-columns:var(--node) minmax(0,1fr);
+  column-gap:var(--space-4);
+  align-items:center;
+  padding:clamp(.5rem,2vh,1.75rem) 0;
+}
+.process__node{
+  position:relative;
+  width:var(--node);height:var(--node);
+  border-radius:50%;
+  border:2px solid rgba(246,246,241,.25);
+  background:var(--c-black);
+  display:grid;
+  place-items:center;
+  color:var(--hue);
+}
+.process__node svg{
+  width:54%;height:54%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.process__node .knob{fill:var(--c-black);}
+.process__body h3{font-size:clamp(2.2rem,min(5vw,8vh),6rem);}
+.process__body p{
+  margin-top:.4rem;
+  max-width:44ch;
+  font-size:clamp(1rem,min(1.4vw,2.3vh),1.5rem);
+  line-height:1.4;
+  color:rgba(246,246,241,.72);
+}
+
+@media (max-width:900px){
+  .process__grid{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
+}
+@media (max-width:600px){
+  .process__grid{padding:var(--space-5) var(--space-2);}
+  .process__track{--node:56px;}
+  .process__step{column-gap:var(--space-3);padding:var(--space-3) 0;}
+}
 
 /* ============================================
    CASE / CLIENTES

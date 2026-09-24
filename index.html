@@ -47,11 +47,15 @@
       <span class="menu__txt"><span class="menu__txt-in">Servicios</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
-    <a class="menu__link" href="#clientes" data-menu-link style="--i:1;--hue:var(--c-blue)">
+    <a class="menu__link" href="#proceso" data-menu-link style="--i:1;--hue:var(--c-cyan)">
+      <span class="menu__txt"><span class="menu__txt-in">Proceso</span></span>
+      <span class="menu__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="menu__link" href="#clientes" data-menu-link style="--i:2;--hue:var(--c-blue)">
       <span class="menu__txt"><span class="menu__txt-in">Clientes</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
-    <a class="menu__link" href="#contacto" data-menu-link style="--i:2;--hue:var(--c-yellow)">
+    <a class="menu__link" href="#contacto" data-menu-link style="--i:3;--hue:var(--c-yellow)">
       <span class="menu__txt"><span class="menu__txt-in">Contacto</span></span>
       <span class="menu__arrow" aria-hidden="true">→</span>
     </a>
@@ -297,6 +301,56 @@
     </div>
   </section>
 
+  <section class="process" id="proceso" aria-labelledby="proceso-title">
+    <div class="process__grid">
+      <div class="process__intro">
+        <p class="process__label">Cómo trabajamos</p>
+        <h2 class="process__title" id="proceso-title">De una charla a tu <em>marca</em> lista para salir.</h2>
+      </div>
+      <div class="process__track">
+        <span class="process__rail" aria-hidden="true"><span class="process__rail-fill"></span></span>
+        <ol class="process__steps">
+          <li class="process__step" style="--hue:var(--c-green)">
+            <span class="process__node" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M5 7h22v14H14l-6 5v-5H5z"/><path d="M10 12h12M10 16h8"/></svg>
+            </span>
+            <div class="process__body">
+              <h3>Brief</h3>
+              <p>Nos contás tu negocio, tu público y a dónde querés llegar. Una charla, no un formulario eterno.</p>
+            </div>
+          </li>
+          <li class="process__step" style="--hue:var(--c-blue)">
+            <span class="process__node" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M6 26l2-7L21 6l5 5L13 24z"/><path d="M18 9l5 5"/></svg>
+            </span>
+            <div class="process__body">
+              <h3>Propuesta</h3>
+              <p>Te mostramos una dirección visual pensada para vos, con el porqué de cada decisión. Nada de plantillas.</p>
+            </div>
+          </li>
+          <li class="process__step" style="--hue:var(--c-yellow)">
+            <span class="process__node" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M6 9h20M6 16h20M6 23h20"/><circle class="knob" cx="12" cy="9" r="2.6"/><circle class="knob" cx="21" cy="16" r="2.6"/><circle class="knob" cx="14" cy="23" r="2.6"/></svg>
+            </span>
+            <div class="process__body">
+              <h3>Ajustes</h3>
+              <p>Afinamos juntos cada detalle hasta que lo sientas tuyo.</p>
+            </div>
+          </li>
+          <li class="process__step" style="--hue:var(--c-cyan)">
+            <span class="process__node" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M5 11l11-6 11 6v12l-11 6-11-6z"/><path d="M5 11l11 6 11-6M16 17v12"/></svg>
+            </span>
+            <div class="process__body">
+              <h3>Entrega</h3>
+              <p>Recibís todo listo para usar: archivos en cada formato y una guía para aplicarlo bien.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
   <section class="case" id="clientes">
     <p class="case__label" data-reveal>Clientes</p>
     <div class="case__card" data-reveal>
@@ -340,6 +394,7 @@
     </a>
     <nav class="footer__nav" aria-label="Navegación de footer">
       <a href="#servicios">Servicios</a>
+      <a href="#proceso">Proceso</a>
       <a href="#clientes">Clientes</a>
       <a href="#contacto">Contacto</a>
     </nav>

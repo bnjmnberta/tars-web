@@ -20,6 +20,7 @@
     setupStackReveals();
     setupStackTitleShrink();
     setupStackBuild();
+    setupProcess();
     setupHeroVideo();
     setupHeroDepth();
     setupHeroTrail();
@@ -265,7 +266,14 @@
     if (!items.length) return;
 
     items.forEach(function (item) {
-      var targets = item.querySelectorAll('h3, .stack__cta');
+      // the entrance moves an inner wrapper, never the h3 itself: the h3's own opacity and
+      // transform belong to the hand-over into the sliver (setupStackTitleShrink), and two
+      // animations writing the same property overwrite each other (e.g. on a reload mid-stack)
+      var h3 = item.querySelector('h3');
+      if (h3 && !h3.querySelector('.stack__title-in')) {
+        h3.innerHTML = '<span class="stack__title-in">' + h3.innerHTML + '</span>';
+      }
+      var targets = item.querySelectorAll('.stack__title-in, .stack__cta');
       if (!targets.length) return;
 
       if (reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') {
@@ -634,6 +642,85 @@
     }).catch(function () { /* fonts or opentype.js unavailable: the plain <p> stays visible */ });
 
     return { paint: paint };
+  }
+
+  /* ---------- "cómo trabajamos": where the screen has room, the section's stage sticks while the
+     scroll drops each step (node + title + copy) from above into its place, one after another;
+     as each one lands its node lights up in its colour, its icon draws itself and the rail's
+     fill advances down to it. All scrubbed, so scrolling back lifts them out again. On small
+     screens the stage scrolls normally and each step drops in as it enters the viewport. ---- */
+  function setupProcess() {
+    var section = document.querySelector('.process');
+    var track = section && section.querySelector('.process__track');
+    if (!track) return;
+    var rail = track.querySelector('.process__rail');
+    var fill = rail.querySelector('.process__rail-fill');
+    var steps = [].slice.call(track.querySelectorAll('.process__step'));
+    var nodes = steps.map(function (s) { return s.querySelector('.process__node'); });
+
+    // node centres from layout offsets, which ignore the drop transforms
+    function centre(i) { return steps[i].offsetTop + nodes[i].offsetTop + nodes[i].offsetHeight / 2; }
+    function placeRail() {
+      var a = centre(0);
+      rail.style.top = a + 'px';
+      rail.style.height = (centre(steps.length - 1) - a) + 'px';
+    }
+    function reach(i) { return (centre(i) - centre(0)) / ((centre(steps.length - 1) - centre(0)) || 1); }
+
+    placeRail();
+    window.addEventListener('resize', placeRail);
+
+    if (!hasGSAP || typeof ScrollTrigger === 'undefined' || reduceMotion) return;
+    ScrollTrigger.addEventListener('refreshInit', placeRail);
+
+    var parts = steps.map(function (step, i) {
+      var lines = [].slice.call(nodes[i].querySelectorAll('path, circle'));
+      lines.forEach(function (el) {
+        var len = Math.ceil(el.getTotalLength()) + 1;
+        el.style.strokeDasharray = len + ' ' + len * 2;
+        el.dataset.len = len;
+      });
+      return { step: step, node: nodes[i], lines: lines, hue: getComputedStyle(nodes[i]).color };
+    });
+    var dim = getComputedStyle(nodes[0]).borderTopColor;
+
+    function addStep(tl, p, at, drop) {
+      // it falls from above but only fades in over the last part of the fall, so it never
+      // reads as sliding across the steps that already landed
+      tl.fromTo(p.step, { y: drop }, { y: 0, duration: 0.7, ease: 'power3.out' }, at)
+        .fromTo(p.step, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: 'none' }, at + 0.2)
+        .fromTo(p.lines, { opacity: 0, strokeDashoffset: function (k, el) { return el.dataset.len; } },
+          { opacity: 1, strokeDashoffset: 0, duration: 0.5, stagger: 0.08, ease: 'none' }, at + 0.35)
+        .fromTo(p.node, { borderColor: dim }, { borderColor: p.hue, duration: 0.25, ease: 'none' }, at + 0.5);
+    }
+
+    var mm = gsap.matchMedia();
+
+    mm.add('(min-width: 901px) and (min-height: 620px)', function () {
+      var tl = gsap.timeline({
+        defaults: { immediateRender: true },
+        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: true, invalidateOnRefresh: true }
+      });
+      tl.set(fill, { scaleY: 0 }, 0);
+      parts.forEach(function (p, i) {
+        addStep(tl, p, i, function () { return -window.innerHeight * 0.35; });
+        if (i > 0) tl.to(fill, { scaleY: function () { return reach(i); }, duration: 0.6, ease: 'power2.out' }, i + 0.1);
+      });
+      tl.to({}, { duration: 0.5 }); // everything in place for a moment before the section leaves
+    });
+
+    mm.add('(max-width: 900px), (max-height: 619px)', function () {
+      gsap.fromTo(fill, { scaleY: 0 }, {
+        scaleY: 1, ease: 'none',
+        scrollTrigger: { trigger: rail, start: 'top 65%', end: 'bottom 65%', scrub: true }
+      });
+      parts.forEach(function (p) {
+        var tl = gsap.timeline({
+          scrollTrigger: { trigger: p.step, start: 'top 95%', end: 'top 60%', scrub: true, invalidateOnRefresh: true }
+        });
+        addStep(tl, p, 0, -140);
+      });
+    });
   }
 
   /* ---------- hero 3D depth: each layer rides its own Z-plane, driven by one scroll scrub ----------
