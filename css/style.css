@@ -20,6 +20,8 @@
   --font-display:'Archivo', 'Arial Black', sans-serif;
   --font-body:'Inter', system-ui, sans-serif;
   --font-mono:'JetBrains Mono', monospace;
+  --font-copy:'Mona Sans', 'Arial', sans-serif;
+  --font-accent:'Cormorant Garamond', Georgia, serif;
 
   --space-1:.5rem;
   --space-2:1rem;
@@ -36,6 +38,9 @@
   --radius-0:0px;
   --nav-h:76px;
 }
+
+@font-face{font-family:'Mona Sans';src:url('../assets/fonts/MonaSans-Bold.woff') format('woff');font-weight:700;font-display:swap;}
+@font-face{font-family:'Cormorant Garamond';src:url('../assets/fonts/CormorantGaramond-Bold.woff') format('woff');font-weight:700;font-display:swap;}
 
 *,*::before,*::after{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -198,29 +203,6 @@ body.is-loading{overflow:hidden;height:100vh;}
 }
 
 .btn--nav{padding:.85rem 1.4rem;font-size:.85rem;margin-left:auto;transition:opacity var(--dur-fast);}
-
-/* ============ tags ============ */
-.tags{
-  display:flex;
-  flex-wrap:wrap;
-  gap:.6rem;
-  margin-top:var(--space-2);
-}
-.tags span{
-  display:inline-block;
-  border:2px solid currentColor;
-  border-radius:999px;
-  padding:.4rem 1rem;
-  font-family:var(--font-mono);
-  font-size:.8rem;
-  font-weight:500;
-  text-transform:uppercase;
-  transition:transform .25s var(--ease-brutal),background-color .25s var(--ease-brutal);
-}
-.tags span:hover{
-  transform:translateY(-3px);
-  background-color:rgba(255,255,255,.18);
-}
 
 /* ============================================
    NAV
@@ -427,80 +409,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 
 /* ============================================
-   SERVICE DIALOG — one shared modal, content swapped per card
-   ============================================ */
-.service-dialog{
-  position:fixed;
-  inset:0;
-  z-index:1100;
-  display:flex;
-  align-items:flex-start;
-  overflow-y:auto;
-  padding:calc(var(--nav-h) + var(--space-5)) var(--space-4) var(--space-6);
-  background:var(--c-green);
-  color:var(--c-black);
-  transform-origin:50% 50%; /* JS overwrites this per-click so the grow animation starts from the card that opened it */
-  transform:scale(.25);
-  opacity:0;
-  visibility:hidden;
-  transition:transform .5s var(--ease-brutal),opacity .35s var(--ease-brutal),visibility 0s linear .5s,background .3s;
-}
-.service-dialog.is-open{
-  transform:scale(1);
-  opacity:1;
-  visibility:visible;
-  transition:transform .5s var(--ease-brutal),opacity .35s var(--ease-brutal),visibility 0s,background .3s;
-}
-.service-dialog--green{background:var(--c-green);color:var(--c-black);}
-.service-dialog--blue{background:var(--c-blue);color:var(--c-white);}
-.service-dialog--yellow{background:var(--c-yellow);color:var(--c-black);}
-.service-dialog--maroon{background:var(--c-maroon);color:var(--c-white);}
-.service-dialog--cyan{background:var(--c-cyan);color:var(--c-black);}
-.service-dialog__close{
-  position:fixed;
-  top:var(--space-3);
-  right:var(--space-3);
-  width:48px;
-  height:48px;
-  display:grid;
-  place-items:center;
-  border:2px solid currentColor;
-  border-radius:999px;
-  background:transparent;
-  color:inherit;
-  font-size:1.1rem;
-  cursor:pointer;
-  transition:background .25s var(--ease-brutal),color .25s var(--ease-brutal);
-}
-.service-dialog__close:hover,.service-dialog__close:focus-visible{background:var(--c-black);color:var(--c-white);border-color:var(--c-black);}
-.service-dialog__content{max-width:1100px;width:100%;}
-.service-dialog__index{
-  font-family:var(--font-mono);
-  font-weight:700;
-  font-size:1rem;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-  opacity:.7;
-}
-.service-dialog__content h3{
-  font-family:var(--font-display);
-  font-weight:900;
-  text-transform:uppercase;
-  font-size:clamp(2.2rem,7.5vw,5.2rem);
-  line-height:.95;
-  margin:.4rem 0 var(--space-4);
-}
-.service-dialog__content .tags{margin-bottom:var(--space-4);}
-.service-dialog__content .tags span{border-color:currentColor;}
-.service-dialog__desc{font-size:clamp(1.05rem,2vw,1.3rem);line-height:1.6;max-width:640px;}
-
-@media (prefers-reduced-motion: reduce){
-  .service-dialog,.service-dialog.is-open{transition:none;transform:none;}
-  .service-dialog{visibility:hidden;opacity:0;}
-  .service-dialog.is-open{visibility:visible;opacity:1;}
-}
-
-/* ============================================
    HERO
    ============================================ */
 .hero{
@@ -577,22 +485,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   border-width:0 2px 2px 0;
 }
 
-.hero__content{
-  position:relative;
-  z-index:3;
-  max-width:1100px;
-  transform:translateZ(0);
-  will-change:transform;
-}
-.eyebrow{
-  font-family:var(--font-mono);
-  text-transform:uppercase;
-  letter-spacing:.15em;
-  font-size:.85rem;
-  color:var(--c-green);
-  text-shadow:0 1px 14px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8);
-  margin-bottom:var(--space-2);
-}
 .hero__bgline{
   display:block;
   overflow:hidden; /* mask for the rise-in entrance */
@@ -607,91 +499,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   clip:rect(0 0 0 0);
   white-space:nowrap;
   border:0;
-}
-
-/* ---- metallic 3D letters: brushed-steel fill + a dark offset copy behind
-   each glyph (extrusion), letters tilt on their own Z-plane via JS/mouse ---- */
-.metal-text{
-  perspective:420px; /* shorter throw = more dramatic foreshortening per degree of tilt */
-  white-space:nowrap;
-}
-.metal-letter{
-  --shine:50;
-  position:relative;
-  display:inline-block;
-  transform-style:preserve-3d;
-  will-change:transform, filter;
-  color:transparent; /* the real glyph only reserves width; ::before = extrusion, ::after = metal face */
-}
-/* extrusion: darker copy pushed back in Z and down — reads as the letter's thickness */
-.metal-letter::before{
-  content:attr(data-char);
-  position:absolute;
-  inset:0;
-  z-index:0;
-  transform:translateZ(-9px) translateY(4px);
-  background:linear-gradient(180deg,#6a6a6a,#161616);
-  background-clip:text;
-  -webkit-background-clip:text;
-  color:transparent;
-}
-/* face: brushed-steel gradient + a highlight band that slides with tilt; sits ABOVE the extrusion */
-.metal-letter::after{
-  content:attr(data-char);
-  position:absolute;
-  inset:0;
-  z-index:1;
-  background-image:
-    linear-gradient(180deg,
-      #ffffff 0%, #ececec 20%, #b4b4b4 45%,
-      #fafafa 58%, #c6c6c6 75%, #ffffff 100%),
-    linear-gradient(115deg,
-      transparent 30%, rgba(255,255,255,.95) 50%, transparent 70%);
-  background-size:100% 100%, 300% 300%;
-  background-position:0 0, calc(var(--shine) * 1%) 50%;
-  background-blend-mode:normal, overlay;
-  background-clip:text;
-  -webkit-background-clip:text;
-  color:transparent;
-}
-@media (prefers-reduced-motion: reduce){
-  .metal-letter{transform:none !important;}
-}
-
-.hero__meta{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  gap:var(--space-2);
-  margin-top:var(--space-4);
-  padding-top:var(--space-3);
-  border-top:1px solid rgba(246,246,241,.25);
-  font-family:var(--font-mono);
-  font-size:.85rem;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-}
-.scroll-cue{display:flex;align-items:center;gap:.75rem;}
-.scroll-cue__line{
-  width:40px;height:1px;
-  background:var(--c-white);
-  position:relative;
-  overflow:hidden;
-}
-.scroll-cue__line::after{
-  content:'';
-  position:absolute;inset:0;
-  background:var(--c-green);
-  animation:scrollline 1.6s var(--ease-brutal) infinite;
-}
-@keyframes scrollline{
-  0%{transform:translateX(-100%);}
-  50%{transform:translateX(0);}
-  100%{transform:translateX(100%);}
-}
-@media (prefers-reduced-motion: reduce){
-  .scroll-cue__line::after{animation:none;transform:translateX(0);}
 }
 
 .hero__brand{
@@ -760,7 +567,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 @media (prefers-reduced-motion: reduce){
   .hero{perspective:none;}
   .hero__frame,
-  .hero__content,
   .hero__brand{transform:none !important;}
 }
 
@@ -809,29 +615,27 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
    SERVICES — sticky stack
    ============================================ */
 .services{position:relative;z-index:2;background:var(--c-black);}
-.services__head{
-  display:flex;
-  align-items:baseline;
-  gap:var(--space-2);
-  padding:var(--space-6) var(--space-3) var(--space-4);
-}
-.services__head h2{
-  font-size:clamp(2rem,6vw,3.5rem);
-}
 
 /* Each card sits in its own absolutely-positioned .stack__step instead of sharing one flow
    container. A shared container makes cards release their sticky lock at DIFFERENT scrollY
    (whichever card has the smallest sticky `top` offset holds on longest) — the last card to
    arrive ends up the FIRST to peel off and fly away solo, over everyone else still stuck below.
    Giving each card its own step, sized so step.top + step.height lands on the SAME target
-   scrollY for every card, makes all five release simultaneously and ride up together. */
-.stack{position:relative;height:calc((100vh - var(--nav-h) - 32px) * 5 + 500px + 60vh);padding:0 var(--space-3);}
+   scrollY for every card, makes all five release simultaneously and ride up together.
+   --step is one card's screen height plus --hold: the extra scroll each card spends alone on top,
+   building its drawing and copy, before the next one starts sliding over it. Adding the same
+   amount to every step's offset AND size keeps the simultaneous-release math intact. */
+.stack{
+  --hold:900px;
+  --step:calc(100vh - var(--nav-h) - 32px + var(--hold));
+  position:relative;height:calc(var(--step) * 5 + 500px + 60vh);padding:0 var(--space-3);
+}
 .stack__step{position:absolute;left:var(--space-3);right:var(--space-3);}
-.stack__step:nth-child(1){top:0;height:calc((100vh - var(--nav-h) - 32px) * 5 + 276px);}
-.stack__step:nth-child(2){top:calc(100vh - var(--nav-h) - 32px);height:calc((100vh - var(--nav-h) - 32px) * 4 + 332px);}
-.stack__step:nth-child(3){top:calc((100vh - var(--nav-h) - 32px) * 2);height:calc((100vh - var(--nav-h) - 32px) * 3 + 388px);}
-.stack__step:nth-child(4){top:calc((100vh - var(--nav-h) - 32px) * 3);height:calc((100vh - var(--nav-h) - 32px) * 2 + 444px);}
-.stack__step:nth-child(5){top:calc((100vh - var(--nav-h) - 32px) * 4);height:calc((100vh - var(--nav-h) - 32px) + 500px);}
+.stack__step:nth-child(1){top:0;height:calc(var(--step) * 5 + 276px);}
+.stack__step:nth-child(2){top:var(--step);height:calc(var(--step) * 4 + 332px);}
+.stack__step:nth-child(3){top:calc(var(--step) * 2);height:calc(var(--step) * 3 + 388px);}
+.stack__step:nth-child(4){top:calc(var(--step) * 3);height:calc(var(--step) * 2 + 444px);}
+.stack__step:nth-child(5){top:calc(var(--step) * 4);height:calc(var(--step) + 500px);}
 .stack__item{
   position:sticky;
   display:block;
@@ -845,86 +649,125 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 224px);}
 .stack__item--blue{color:var(--c-white);}
 .stack__item--maroon{color:var(--c-white);}
+.stack__item--green{--card-bg:var(--c-green);}
+.stack__item--blue{--card-bg:var(--c-blue-deep);}
+.stack__item--yellow{--card-bg:var(--c-yellow);}
+.stack__item--maroon{--card-bg:var(--c-maroon);}
+.stack__item--cyan{--card-bg:var(--c-cyan);}
 
 .stack__shape{
   position:relative;
-  min-height:calc(100vh - var(--nav-h) - 32px); /* fill the screen as much as possible;
-    grows further with page scroll if a card's content ever needs more room */
-  padding:var(--space-5) var(--space-4) var(--space-6);
+  height:calc(100vh - var(--nav-h) - 32px); /* fixed to one screen — the title stays put and
+    .stack__expand scrolls internally instead of the card growing taller than the viewport */
+  padding:var(--space-5) var(--space-4);
   overflow:hidden;
   border-top-left-radius:35px; /* top corners only — a rounded bottom clashes with the next
     card's rounded top right below it (double-curve gap). The corner cutout always reveals the
     real card sitting behind it on screen — never black — thanks to the transparent backing
     plus the generous -24px overlap above */
   border-top-right-radius:35px;
+  /* two equal columns that fill the whole card: copy on the left, drawing on the right */
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr);
+  column-gap:var(--space-5);
   /* this card's REAL color lives here, not on .stack__item — set explicitly per variant below */
 }
-.stack__expand{margin-top:var(--space-4);}
-.stack__illustration{font-size:3rem;line-height:1;margin-bottom:var(--space-2);}
-.stack__logo-stage{position:relative;width:100%;height:280px;margin-bottom:var(--space-2);}
-.stack__logo-stage img{
-  position:absolute;
-  top:0;
-  left:0;
-  width:160px;
-  touch-action:none;
-  -webkit-user-drag:none;
-  user-select:none;
-  cursor:grab;
-  filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));
-  will-change:transform;
+/* per-card line illustration, built by scroll while the card holds the top of the stack. It
+   takes its whole grid cell and the SVG scales to the largest size that fits (meet), so the
+   drawing is as big as the card allows. Every shape is filled with the card's own colour, so
+   whatever sits in front hides the lines behind it — painter's order is the depth order. */
+.stack__art{
+  --sw:4.75;
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  min-height:0;
+  pointer-events:none;
 }
-.stack__logo-stage img.is-dragging{cursor:grabbing;filter:drop-shadow(0 26px 30px rgba(0,0,0,.35));}
-.stack__more{font-size:1rem;line-height:1.6;max-width:640px;}
-.stack__examples{
+.stack__art--logo{--sw:9.3;}
+.stack__art svg{width:100%;height:100%;display:block;overflow:visible;}
+.stack__art .art *{
+  fill:var(--card-bg);
+  stroke:currentColor;
+  stroke-width:var(--sw);
+  stroke-linejoin:miter;
+  stroke-miterlimit:10;
+}
+.stack__art .nofill{fill:none;}
+.stack__art .pop{fill:currentColor;stroke:none;}
+/* copy box: whatever height is left under the title. main.js sets the paragraph inside it as
+   real glyph outlines sized to fill this box, and writes them letter by letter with the scroll */
+.stack__expand{
+  position:relative;
   margin-top:var(--space-4);
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
 }
-.stack__examples-track{display:flex;gap:var(--space-3);width:max-content;padding-bottom:var(--space-2);}
-.stack__example-item{
-  width:200px;
-  aspect-ratio:4/5;
-  flex-shrink:0;
-  border:2px dashed currentColor;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  opacity:.7;
-  font-family:var(--font-mono);
-  font-size:.85rem;
+/* no-JS / fallback look — same type as the written version */
+.stack__why{
+  font-family:var(--font-copy);
+  font-weight:700;
   text-transform:uppercase;
-  letter-spacing:.04em;
+  font-size:clamp(1.5rem,2.9vw,3.2rem);
+  line-height:1;
+  letter-spacing:-.01em;
+}
+.stack__why em{
+  font-family:var(--font-accent);
+  font-style:normal;
+  font-size:1.12em;
+}
+/* once the glyphs are drawn, the <p> stays only for screen readers */
+.stack__expand.is-written .stack__why{
+  position:absolute;
+  width:1px;height:1px;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  white-space:nowrap;
+}
+.stack__write{display:block;width:100%;height:auto;overflow:visible;}
+.stack__write path{
+  fill:currentColor;
+  stroke:currentColor;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  visibility:hidden;
 }
 .stack__item--green .stack__shape{background:var(--c-green);}
-.stack__item--blue .stack__shape{background:var(--c-blue);}
+.stack__item--blue .stack__shape{background:var(--c-blue-deep);} /* var(--c-blue) alone is only 3.24:1 against white body text — fails WCAG AA 4.5:1; this deeper tone clears it */
 .stack__item--yellow .stack__shape{background:var(--c-yellow);}
 .stack__item--maroon .stack__shape{background:var(--c-maroon);}
 .stack__item--cyan .stack__shape{background:var(--c-cyan);}
 .stack__item--cyan .stack__shape{box-shadow:0 24px 50px -16px rgba(0,0,0,.5);}
+/* last card in the stack — nothing sits below it, so round the bottom too */
+.stack__item--cyan .stack__shape{border-bottom-left-radius:35px;border-bottom-right-radius:35px;}
 
 .stack__inner{
-  max-width:1100px;
-  width:100%;
+  grid-column:1;
+  grid-row:1;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  container-type:inline-size;
 }
-.stack__index{
-  font-family:var(--font-mono);
-  font-weight:700;
-  font-size:.7rem;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  opacity:.85;
-  display:block;
-  margin-bottom:var(--space-2);
-}
+/* as big as the copy column allows: 15% of its width, unless the title's longest word (--longest,
+   in em of Archivo Black caps) would not fit on one line at that size — then that word sets it */
 .stack__inner h3{
-  font-size:clamp(2.2rem,7.5vw,5.2rem);
-  overflow-wrap:break-word; /* long words ("INMOBILIARIO") must not overflow the card on narrow screens */
+  font-size:min(15cqi, calc(97cqi / var(--longest, 5)));
+  overflow-wrap:break-word;
+  flex-shrink:0;
 }
-.stack__cta{margin-top:var(--space-4);}
+.stack__item--green h3{--longest:3.9;}   /* LOGOS */
+.stack__item--blue h3{--longest:4.25;}   /* VIDEOS */
+.stack__item--yellow h3{--longest:5.1;}  /* GESTIÓN */
+.stack__item--maroon h3{--longest:7.8;}  /* INMOBILIARIO */
+.stack__item--cyan h3{--longest:4.3;}    /* DISEÑO */
+.stack__cta{margin-top:var(--space-4);flex-shrink:0;}
 .stack__item--cyan .btn{border-color:var(--c-black);color:var(--c-black);}
 .stack__item--cyan .btn:hover{background:var(--c-black);color:var(--c-cyan);}
 
@@ -1137,24 +980,48 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .hero__brand{display:none;}
 }
 
+/* below laptop width: one column — copy on top, drawing underneath; both rows get a definite
+   share of the card so the written paragraph can size itself to fill its box */
+@media (max-width:1023px){
+  .stack__shape{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:minmax(0,1.25fr) minmax(90px,1fr);
+    row-gap:var(--space-3);
+  }
+  .stack__inner{grid-column:1;grid-row:1;}
+  .stack__art{grid-column:1;grid-row:2;}
+  .stack__expand{margin-top:var(--space-2);}
+  .stack__why{font-size:clamp(1.2rem,4.2vw,2.2rem);}
+}
+
 @media (max-width:600px){
   :root{--nav-h:64px;}
-  .stack{height:calc((100vh - var(--nav-h) - 24px) * 5 + 300px + 40vh);padding-left:var(--space-1);padding-right:var(--space-1);}
+  .stack{
+    --hold:700px;
+    --step:calc(100vh - var(--nav-h) - 24px + var(--hold));
+    height:calc(var(--step) * 5 + 300px + 40vh);padding-left:var(--space-1);padding-right:var(--space-1);
+  }
   .stack__step{left:var(--space-1);right:var(--space-1);}
-  .stack__step:nth-child(1){height:calc((100vh - var(--nav-h) - 24px) * 5 + 212px);}
-  .stack__step:nth-child(2){top:calc(100vh - var(--nav-h) - 24px);height:calc((100vh - var(--nav-h) - 24px) * 4 + 234px);}
-  .stack__step:nth-child(3){top:calc((100vh - var(--nav-h) - 24px) * 2);height:calc((100vh - var(--nav-h) - 24px) * 3 + 256px);}
-  .stack__step:nth-child(4){top:calc((100vh - var(--nav-h) - 24px) * 3);height:calc((100vh - var(--nav-h) - 24px) * 2 + 278px);}
-  .stack__step:nth-child(5){top:calc((100vh - var(--nav-h) - 24px) * 4);height:calc((100vh - var(--nav-h) - 24px) + 300px);}
+  .stack__step:nth-child(1){height:calc(var(--step) * 5 + 212px);}
+  .stack__step:nth-child(2){top:var(--step);height:calc(var(--step) * 4 + 234px);}
+  .stack__step:nth-child(3){top:calc(var(--step) * 2);height:calc(var(--step) * 3 + 256px);}
+  .stack__step:nth-child(4){top:calc(var(--step) * 3);height:calc(var(--step) * 2 + 278px);}
+  .stack__step:nth-child(5){top:calc(var(--step) * 4);height:calc(var(--step) + 300px);}
   .stack__step:nth-child(1) .stack__item{top:calc(var(--nav-h) + 22px);}
   .stack__step:nth-child(2) .stack__item{top:calc(var(--nav-h) + 44px);}
   .stack__step:nth-child(3) .stack__item{top:calc(var(--nav-h) + 66px);}
   .stack__step:nth-child(4) .stack__item{top:calc(var(--nav-h) + 88px);}
   .stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 110px);}
-  .stack__shape{padding-left:var(--space-2);padding-right:var(--space-2);min-height:calc(100vh - var(--nav-h) - 24px);border-top-left-radius:18px;border-top-right-radius:18px;}
-  .stack__inner h3{font-size:clamp(1.6rem,8vw,5.2rem);}
-  .stack__cta{margin-top:var(--space-6);}
+  .stack__shape{padding:var(--space-4) var(--space-2) var(--space-3);height:calc(100vh - var(--nav-h) - 24px);border-top-left-radius:18px;border-top-right-radius:18px;}
+  .stack__item--cyan .stack__shape{border-bottom-left-radius:18px;border-bottom-right-radius:18px;}
+  .stack__cta{margin-top:var(--space-3);}
   .stack__cta .btn{padding:.55rem .9rem;font-size:.7rem;min-height:auto;}
   .case{padding-left:var(--space-2);padding-right:var(--space-2);}
   .footer__top{flex-direction:column;}
+}
+
+/* no build-by-scroll with reduced motion: drop the hold so the stack keeps its original length
+   (main.js shows every card fully built) */
+@media (prefers-reduced-motion: reduce){
+  .stack{--hold:0px;}
 }

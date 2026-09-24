@@ -14,141 +14,18 @@
 
     setupLenis();
     setupMenu();
-    setupServiceDialog();
     setupNavAutohide();
     setupToTop();
     setupReveals();
     setupStackReveals();
+    setupStackTitleShrink();
+    setupStackBuild();
     setupHeroVideo();
     setupHeroDepth();
-    setupMetalText();
     setupHeroTrail();
     setupAnchorScroll();
-    setupFloatingLogos();
     whenLoaderDone(setupHeroIntro);
   });
-
-  /* ---------- logos that drift freely inside their stage and can be dragged around ---------- */
-  function setupFloatingLogos() {
-    var stages = document.querySelectorAll('[data-float-stage]');
-    if (!stages.length) return;
-
-    stages.forEach(function (stage) {
-      var item = stage.querySelector('[data-float-item]');
-      if (!item) return;
-
-      var DRIFT_SPEED = 0.16; // fixed speed everything settles back to — never inherits drag/throw speed
-      var ROT_SPEED = 0.35; // deg per frame, constant spin
-
-      var sw = 0, sh = 0, iw = 0, ih = 0;
-      var x = 0, y = 0, vx = 0, vy = 0, rotation = 0;
-      var dragging = false, dragOffsetX = 0, dragOffsetY = 0;
-      var lastX = 0, lastY = 0, lastTime = 0;
-
-      function measure() {
-        sw = stage.clientWidth;
-        sh = stage.clientHeight;
-        iw = item.offsetWidth;
-        ih = item.offsetHeight;
-      }
-
-      function randomVelocity() {
-        var angle = Math.random() * Math.PI * 2;
-        return { vx: Math.cos(angle) * DRIFT_SPEED, vy: Math.sin(angle) * DRIFT_SPEED };
-      }
-
-      function apply() {
-        if (!isFinite(x) || !isFinite(y)) { x = 0; y = 0; }
-        item.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + rotation.toFixed(2) + 'deg)';
-      }
-
-      measure();
-      x = Math.random() * Math.max(sw - iw, 0);
-      y = Math.random() * Math.max(sh - ih, 0);
-      var v0 = randomVelocity();
-      vx = v0.vx; vy = v0.vy;
-      apply();
-
-      var BRAKE = 0.03; // how fast speed eases back to DRIFT_SPEED after being thrown — lower = slower brake
-
-      function tick() {
-        if (!reduceMotion) {
-          rotation = (rotation + ROT_SPEED) % 360;
-          if (!dragging) {
-            var mag = Math.sqrt(vx * vx + vy * vy);
-            if (mag < 0.001) {
-              var v = randomVelocity();
-              vx = v.vx; vy = v.vy;
-            } else {
-              var newMag = mag + (DRIFT_SPEED - mag) * BRAKE;
-              vx = (vx / mag) * newMag;
-              vy = (vy / mag) * newMag;
-            }
-            x += vx;
-            y += vy;
-            var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
-            if (x <= 0) { x = 0; vx = Math.abs(vx); }
-            else if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
-            if (y <= 0) { y = 0; vy = Math.abs(vy); }
-            else if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
-          }
-          apply();
-        }
-        requestAnimationFrame(tick);
-      }
-
-      item.addEventListener('pointerdown', function (e) {
-        dragging = true;
-        item.classList.add('is-dragging');
-        try { item.setPointerCapture(e.pointerId); } catch (err) { /* not a real active pointer — drag still works via document-level move */ }
-        var rect = stage.getBoundingClientRect();
-        dragOffsetX = e.clientX - rect.left - x;
-        dragOffsetY = e.clientY - rect.top - y;
-        lastX = e.clientX; lastY = e.clientY; lastTime = performance.now();
-        vx = 0; vy = 0;
-      });
-
-      item.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        var rect = stage.getBoundingClientRect();
-        var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
-        x = Math.min(maxX, Math.max(0, e.clientX - rect.left - dragOffsetX));
-        y = Math.min(maxY, Math.max(0, e.clientY - rect.top - dragOffsetY));
-        var now = performance.now();
-        var dt = Math.max(now - lastTime, 1);
-        vx = (e.clientX - lastX) / dt * 16;
-        vy = (e.clientY - lastY) / dt * 16;
-        lastX = e.clientX; lastY = e.clientY; lastTime = now;
-        apply();
-      });
-
-      function endDrag() {
-        if (!dragging) return;
-        dragging = false;
-        item.classList.remove('is-dragging');
-        // keep the throw's speed and direction — tick() eases it back down to DRIFT_SPEED
-        // gradually every frame, just cap it so a huge flick doesn't teleport it
-        var mag = Math.sqrt(vx * vx + vy * vy);
-        var MAX_THROW = 8;
-        if (mag > MAX_THROW) {
-          vx = (vx / mag) * MAX_THROW;
-          vy = (vy / mag) * MAX_THROW;
-        }
-      }
-      item.addEventListener('pointerup', endDrag);
-      item.addEventListener('pointercancel', endDrag);
-
-      window.addEventListener('resize', function () {
-        measure();
-        var maxX = Math.max(sw - iw, 0), maxY = Math.max(sh - ih, 0);
-        x = maxX ? Math.min(x, maxX) : 0;
-        y = maxY ? Math.min(y, maxY) : 0;
-        apply();
-      });
-
-      requestAnimationFrame(tick);
-    });
-  }
 
   /* ---------- run cb once the loading screen (js/loader.js) is gone ---------- */
   function whenLoaderDone(cb) {
@@ -257,79 +134,6 @@
       // keep Tab inside header + menu while it's open
       var stops = [].slice.call(document.querySelectorAll('.nav a, .nav button, .menu a')).filter(function (el) {
         return el.offsetParent !== null && getComputedStyle(el).pointerEvents !== 'none';
-      });
-      if (!stops.length) return;
-      var first = stops[0], last = stops[stops.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    });
-  }
-
-  /* ---------- service cards: click (or Enter/Space, cards are tabindex=0) anywhere on a card
-     to open a shared modal with more info about that service. The real "Realiza tu consulta"
-     link on the cyan card is left alone — activating it never reaches this handler's open(). ---------- */
-  function setupServiceDialog() {
-    var dialog = document.querySelector('[data-service-dialog]');
-    var cards = document.querySelectorAll('[data-service]');
-    if (!dialog || !cards.length) return;
-
-    var VARIANTS = ['green', 'blue', 'yellow', 'maroon', 'cyan'];
-    var titleEl = dialog.querySelector('[data-service-dialog-title]');
-    var indexEl = dialog.querySelector('[data-service-dialog-index]');
-    var tagsEl = dialog.querySelector('[data-service-dialog-tags]');
-    var descEl = dialog.querySelector('[data-service-dialog-desc]');
-    var closeBtn = dialog.querySelector('.service-dialog__close');
-    var inertTargets = [document.getElementById('main'), document.querySelector('.footer'), document.querySelector('[data-nav]')];
-    var isOpen = false;
-    var opener = null;
-
-    function open(card) {
-      VARIANTS.forEach(function (v) { dialog.classList.remove('service-dialog--' + v); });
-      var variant = VARIANTS.filter(function (v) { return card.classList.contains('stack__item--' + v); })[0];
-      if (variant) dialog.classList.add('service-dialog--' + variant);
-
-      titleEl.textContent = card.querySelector('h3').textContent;
-      indexEl.textContent = card.querySelector('.stack__index').textContent;
-      tagsEl.innerHTML = card.querySelector('.tags').innerHTML;
-      // the source spans carry GSAP's inline opacity/transform from the scroll-reveal animation —
-      // strip it so the clone always shows at full opacity in its own dialog, regardless of
-      // whether the card behind it has already played its reveal
-      tagsEl.querySelectorAll('span').forEach(function (s) { s.removeAttribute('style'); });
-      descEl.textContent = card.querySelector('.stack__more').textContent;
-
-      opener = card;
-      isOpen = true;
-      var rect = card.getBoundingClientRect();
-      dialog.style.transformOrigin = (rect.left + rect.width / 2) + 'px ' + (rect.top + rect.height / 2) + 'px';
-      dialog.classList.add('is-open');
-      dialog.inert = false;
-      inertTargets.forEach(function (el) { if (el) el.inert = true; });
-      document.body.style.overflow = 'hidden';
-      if (lenis) lenis.stop();
-      window.setTimeout(function () { closeBtn.focus(); }, 60);
-    }
-
-    function close() {
-      if (!isOpen) return;
-      isOpen = false;
-      dialog.classList.remove('is-open');
-      dialog.inert = true;
-      inertTargets.forEach(function (el) { if (el) el.inert = false; });
-      document.body.style.overflow = '';
-      if (lenis) lenis.start();
-      if (opener) opener.focus();
-    }
-
-    dialog.querySelectorAll('[data-service-dialog-close]').forEach(function (el) {
-      el.addEventListener('click', close);
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (!isOpen) return;
-      if (e.key === 'Escape') { close(); return; }
-      if (e.key !== 'Tab') return;
-      var stops = [].slice.call(dialog.querySelectorAll('a, button')).filter(function (el) {
-        return el.offsetParent !== null;
       });
       if (!stops.length) return;
       var first = stops[0], last = stops[stops.length - 1];
@@ -455,13 +259,13 @@
     }
   }
 
-  /* ---------- staggered reveal of tags/CTA inside each sticky service block ---------- */
+  /* ---------- staggered reveal of title/CTA inside each sticky service block ---------- */
   function setupStackReveals() {
     var items = document.querySelectorAll('.stack__item');
     if (!items.length) return;
 
     items.forEach(function (item) {
-      var targets = item.querySelectorAll('.stack__index, h3, .tags span, .stack__cta');
+      var targets = item.querySelectorAll('h3, .stack__cta');
       if (!targets.length) return;
 
       if (reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') {
@@ -485,6 +289,355 @@
     });
   }
 
+  /* ---------- each card's own title shrinks into the sliver strip that keeps peeking out once
+     the next card stacks over it, instead of a separate duplicate label sitting there. Scrubbed
+     to the exact scroll range right before the next card's sticky pin engages, so the title lands
+     at its shrunk size/position at the same instant the next card starts covering everything else —
+     no jump. Padding-top animates to whatever leaves the shrunk title vertically centered in the
+     sliver (not flush to its top), using the h3's own line-height ratio so it's exact at any size.
+     Skipped on narrow screens: the sliver there is only ~22px tall, too tight for a legible word. */
+  function setupStackTitleShrink() {
+    var items = [].slice.call(document.querySelectorAll('.stack__item'));
+    if (items.length < 2 || reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') return;
+    if (window.matchMedia('(max-width: 700px)').matches) return;
+
+    var TRANSITION_PX = 260; // scroll distance the shrink is scrubbed over
+
+    for (var i = 0; i < items.length - 1; i++) {
+      (function (item, next) {
+        var shape = item.querySelector('.stack__shape');
+        var h3 = shape.querySelector('h3');
+        var step = next.closest('.stack__step');
+        if (!shape || !h3 || !step) return;
+
+        var thisTop = parseFloat(getComputedStyle(item).top);
+        var nextTop = parseFloat(getComputedStyle(next).top);
+        var sliverH = nextTop - thisTop; // how tall the peeking strip actually is (56px desktop)
+        var cs = getComputedStyle(h3);
+        var lineHeightRatio = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize); // unitless, same at any font-size
+        var targetFontSize = Math.max(14, sliverH * 0.42);
+        var targetPaddingTop = Math.max(0, (sliverH - targetFontSize * lineHeightRatio) / 2);
+
+        // resting values come from the stylesheet (they change with the viewport), read with the
+        // tween's own inline value cleared, and re-read on every refresh
+        function atRest(el, prop) {
+          var keep = el.style[prop];
+          el.style[prop] = '';
+          var v = getComputedStyle(el)[prop];
+          el.style[prop] = keep;
+          return v;
+        }
+
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: step,
+            start: 'top top+=' + (nextTop + TRANSITION_PX),
+            end: 'top top+=' + nextTop,
+            scrub: true,
+            invalidateOnRefresh: true
+          }
+        })
+          .fromTo(shape, { paddingTop: function () { return atRest(shape, 'paddingTop'); } },
+            { paddingTop: targetPaddingTop, ease: 'none', immediateRender: false }, 0)
+          .fromTo(h3, { fontSize: function () { return atRest(h3, 'fontSize'); } },
+            { fontSize: targetFontSize, ease: 'none', immediateRender: false }, 0)
+          // the drawing fills the card up to its top edge — fade it so only the title sits in the strip
+          .to(shape.querySelector('.stack__art'), { opacity: 0, ease: 'none' }, 0);
+      })(items[i], items[i + 1]);
+    }
+  }
+
+  /* ---------- each card builds itself while it holds the top of the stack: once its sticky lock
+     engages, the next --hold px of ordinary scrolling (CSS, on .stack) trace its drawing back to
+     front and bring its copy in left to right, all before the next card starts sliding over it.
+     Every shape is filled with the card colour, so front layers hide the lines behind them.
+     Reduced motion (or no GSAP): every card simply shows fully built. ---------- */
+  function setupStackBuild() {
+    var stack = document.querySelector('.stack');
+    var items = [].slice.call(document.querySelectorAll('.stack__item'));
+    if (!stack || !items.length) return;
+    var hold = parseFloat(getComputedStyle(stack).getPropertyValue('--hold')) || 0;
+    var canScrub = hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduceMotion && hold > 0;
+
+    items.forEach(function (item) {
+      var svg = item.querySelector('.stack__art svg');
+      var art = svg && svg.querySelector('.art');
+      if (!art || !hasGSAP) return;
+
+      var ink = getComputedStyle(item).color;
+      var bg = getComputedStyle(item).getPropertyValue('--card-bg').trim();
+
+      var tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
+      var painters = []; // proxy-driven paints, replayed after a refresh (see onRefresh below)
+      var steps = [].slice.call(art.querySelectorAll('[data-step]'));
+      var span = 0.86 / steps.length;
+
+      // contours trace one layer per step; a finished contour drops its dash pattern so its
+      // closing corner renders as a clean miter instead of a dash seam. A shape's card-coloured
+      // fill fades in while its contour draws, so whatever it covers dissolves out gradually
+      // instead of vanishing the instant the shape starts (and nothing is hidden before that)
+      steps.forEach(function (step, i) {
+        var at = i * span;
+        step.querySelectorAll('path, rect, circle, line, ellipse').forEach(function (el) {
+          if (el.classList.contains('pop')) return;
+          var len = el.getTotalLength();
+          var o = { p: 0 };
+          function paint() {
+            el.style.fillOpacity = Math.min(1, Math.max(0, (o.p - 0.15) / 0.85));
+            if (o.p >= 0.999) {
+              el.style.strokeDasharray = 'none';
+              el.style.strokeDashoffset = '0';
+            } else {
+              el.style.strokeDasharray = len + ' ' + len;
+              el.style.strokeDashoffset = len * (1 - o.p);
+            }
+          }
+          paint();
+          painters.push(paint);
+          tl.to(o, { p: 1, duration: span * 0.92, onUpdate: paint }, at);
+        });
+        var pops = step.querySelectorAll('.pop');
+        if (pops.length) {
+          gsap.set(pops, { opacity: 0, scale: 0, transformOrigin: '50% 50%' });
+          tl.to(pops, { opacity: 1, scale: 1, duration: span * 0.2, stagger: span * 0.05, ease: 'back.out(3)' }, at + span * 0.75);
+        }
+      });
+
+      // the paragraph is written alongside the drawing, letter by letter, and lands with the final fill
+      var writer = createWriter(item.querySelector('.stack__expand'));
+      if (writer) {
+        var pen = { p: 0 };
+        var write = function () { writer.paint(pen.p); };
+        painters.push(write);
+        tl.to(pen, { p: 1, duration: 0.86, onUpdate: write }, 0.05);
+      }
+
+      var endfills = art.querySelectorAll('[data-endfill]');
+      if (endfills.length) {
+        gsap.set(endfills, { fill: bg });
+        tl.to(endfills, { fill: ink, duration: 0.1 }, 0.88);
+      }
+
+      if (!canScrub) { tl.progress(1); return; }
+
+      var step = item.closest('.stack__step');
+      ScrollTrigger.create({
+        trigger: step,
+        start: function () { return 'top top+=' + parseFloat(getComputedStyle(item).top); },
+        // re-read on every refresh: --hold changes between the desktop and phone layouts
+        end: function () { return '+=' + (parseFloat(getComputedStyle(stack).getPropertyValue('--hold')) || hold) * 0.9; },
+        scrub: true,
+        animation: tl,
+        invalidateOnRefresh: true,
+        // a refresh (loader done, resize) restores the timeline's progress with callbacks
+        // suppressed: the proxies land on the right value but nothing repaints from them
+        onRefresh: function () { painters.forEach(function (fn) { fn(); }); }
+      });
+    });
+  }
+
+  /* ---------- hand-written copy: each card's paragraph is set as real glyph outlines (opentype.js
+     reads the same Mona Sans / Cormorant files the CSS uses), sized to fill the whole copy box.
+     paint(p) traces every letter's contour and then inks it in, left to right, a few letters in
+     motion at once like a pen. The <p> stays in the DOM for screen readers and as the no-JS look. */
+  var WRITE_LH = 1;          // line advance, in font-size units
+  var WRITE_TOP = 0.95;      // first baseline: cap height + room for accents on capitals (É, Ó, Í)
+  var WRITE_BOTTOM = 0.18;   // under the last baseline: commas and the tail of Q
+  var WRITE_TRACK = -0.01;   // sans tracking, em
+  var WRITE_PEN = 5;         // letters being written at the same time
+  var WRITE_SCALE = 0.8;     // copy set at 80% of the size that would fill its box — the title leads
+  var writeFonts = null;
+
+  function loadWriteFonts() {
+    if (writeFonts) return writeFonts;
+    writeFonts = new Promise(function (resolve, reject) {
+      if (typeof opentype === 'undefined') { reject(new Error('opentype.js missing')); return; }
+      var urls = ['assets/fonts/MonaSans-Bold.woff', 'assets/fonts/CormorantGaramond-Bold.woff'];
+      var fonts = [];
+      var left = urls.length;
+      urls.forEach(function (url, i) {
+        opentype.load(url, function (err, font) {
+          if (err) { reject(err); return; }
+          fonts[i] = font;
+          if (--left === 0) resolve({ sans: fonts[0], serif: fonts[1] });
+        });
+      });
+    });
+    return writeFonts;
+  }
+
+  // paragraph -> words -> letters, each letter tagged sans or serif (<em>)
+  function readWords(p) {
+    var words = [];
+    var cur = [];
+    function flush() { if (cur.length) { words.push(cur); cur = []; } }
+    (function walk(node, serif) {
+      [].forEach.call(node.childNodes, function (n) {
+        if (n.nodeType === 3) {
+          n.textContent.toUpperCase().split('').forEach(function (ch) {
+            if (/\s/.test(ch)) flush(); else cur.push({ ch: ch, serif: serif });
+          });
+        } else if (n.nodeType === 1) {
+          walk(n, serif || n.tagName === 'EM');
+        }
+      });
+    })(p, false);
+    flush();
+    return words;
+  }
+
+  // shape every word once at font-size 1; any real size is just a multiple of these numbers
+  function shapeWords(words, fonts) {
+    var sans = fonts.sans;
+    var serif = fonts.serif;
+    // serif capitals drawn to the same cap height as the sans, as on the reference
+    var serifScale = (sans.tables.os2.sCapHeight / sans.unitsPerEm) / (serif.tables.os2.sCapHeight / serif.unitsPerEm);
+    var shaped = words.map(function (word) {
+      var x = 0;
+      var prev = null;
+      var glyphs = word.map(function (c) {
+        var font = c.serif ? serif : sans;
+        var size = c.serif ? serifScale : 1;
+        var g = font.charToGlyph(c.ch);
+        if (prev && prev.font === font) x += font.getKerningValue(prev.g, g) * size / font.unitsPerEm;
+        var out = { g: g, size: size, x: x };
+        x += g.advanceWidth * size / font.unitsPerEm + (c.serif ? 0 : WRITE_TRACK);
+        prev = { g: g, font: font };
+        return out;
+      });
+      return { glyphs: glyphs, w: x };
+    });
+    return { words: shaped, space: sans.charToGlyph(' ').advanceWidth / sans.unitsPerEm };
+  }
+
+  function breakLines(shaped, s, W) {
+    var lines = [];
+    var line = [];
+    var x = 0;
+    shaped.words.forEach(function (w) {
+      var ww = w.w * s;
+      var gap = line.length ? shaped.space * s : 0;
+      if (line.length && x + gap + ww > W) { lines.push(line); line = []; x = 0; gap = 0; }
+      line.push({ word: w, x: x + gap });
+      x += gap + ww;
+    });
+    if (line.length) lines.push(line);
+    return lines;
+  }
+
+  function textHeight(n, s) { return s * (WRITE_TOP + (n - 1) * WRITE_LH + WRITE_BOTTOM); }
+
+  // biggest font-size whose wrapped paragraph fits the box
+  function fitSize(shaped, W, H) {
+    var widest = 0;
+    shaped.words.forEach(function (w) { widest = Math.max(widest, w.w); });
+    var lo = 6;
+    var hi = Math.min(220, W / widest);
+    for (var i = 0; i < 24; i++) {
+      var mid = (lo + hi) / 2;
+      if (textHeight(breakLines(shaped, mid, W).length, mid) <= H) lo = mid; else hi = mid;
+    }
+    return lo * WRITE_SCALE;
+  }
+
+  function createWriter(box) {
+    var para = box && box.querySelector('.stack__why');
+    if (!para) return null;
+    var shape = box.closest('.stack__shape');
+    var h3 = shape && shape.querySelector('h3');
+    var NS = 'http://www.w3.org/2000/svg';
+    var words = readWords(para);
+    var shaped = null;
+    var svg = null;
+    var glyphs = [];
+    var last = [];
+    var progress = 0;
+
+    function layout() {
+      // measure the box at rest: the title-shrink scrub may have left inline sizes on the card
+      var keepPad = shape.style.paddingTop;
+      var keepFont = h3 ? h3.style.fontSize : '';
+      shape.style.paddingTop = '';
+      if (h3) h3.style.fontSize = '';
+      var W = box.clientWidth;
+      var H = box.clientHeight;
+      shape.style.paddingTop = keepPad;
+      if (h3) h3.style.fontSize = keepFont;
+      if (W < 40 || H < 20) return;
+
+      var s = fitSize(shaped, W, H);
+      var lines = breakLines(shaped, s, W);
+      var h = textHeight(lines.length, s);
+
+      if (svg) svg.remove();
+      svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'stack__write');
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + h);
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('stroke-width', Math.max(0.8, s * 0.022).toFixed(2));
+      svg.appendChild(g);
+
+      glyphs = [];
+      lines.forEach(function (line, li) {
+        var baseline = s * (WRITE_TOP + li * WRITE_LH);
+        line.forEach(function (item) {
+          item.word.glyphs.forEach(function (gl) {
+            var d = gl.g.getPath(item.x + gl.x * s, baseline, gl.size * s).toPathData(2);
+            if (!d) return;
+            var path = document.createElementNS(NS, 'path');
+            path.setAttribute('d', d);
+            g.appendChild(path);
+            glyphs.push({ el: path, len: 0 });
+          });
+        });
+      });
+      box.appendChild(svg);
+      glyphs.forEach(function (gl) { gl.len = Math.ceil(gl.el.getTotalLength()) + 1; });
+      last = [];
+      box.classList.add('is-written');
+      paint(progress);
+    }
+
+    function paint(p) {
+      progress = p;
+      var n = glyphs.length;
+      if (!n) return;
+      var head = p * (n + WRITE_PEN);
+      for (var i = 0; i < n; i++) {
+        var t = Math.min(1, Math.max(0, (head - i) / WRITE_PEN));
+        if (t === last[i]) continue;
+        last[i] = t;
+        var gl = glyphs[i];
+        var st = gl.el.style;
+        if (t <= 0) { st.visibility = 'hidden'; continue; }
+        st.visibility = 'visible';
+        var drawn = Math.min(1, t / 0.7); // the contour first...
+        if (drawn >= 1) {
+          st.strokeDasharray = 'none';
+          st.strokeDashoffset = '0';
+        } else {
+          st.strokeDasharray = gl.len + ' ' + gl.len;
+          st.strokeDashoffset = String(gl.len * (1 - drawn));
+        }
+        st.fillOpacity = String(Math.min(1, Math.max(0, (t - 0.45) / 0.55))); // ...then the ink
+      }
+    }
+
+    Promise.all([loadWriteFonts(), document.fonts ? document.fonts.ready : null]).then(function (res) {
+      shaped = shapeWords(words, res[0]);
+      layout();
+      var wait;
+      window.addEventListener('resize', function () {
+        clearTimeout(wait);
+        wait = setTimeout(layout, 150);
+      });
+    }).catch(function () { /* fonts or opentype.js unavailable: the plain <p> stays visible */ });
+
+    return { paint: paint };
+  }
+
   /* ---------- hero 3D depth: each layer rides its own Z-plane, driven by one scroll scrub ----------
      .hero has perspective + preserve-3d directly (single 3D context, no nested transform-origins),
      so every layer below animates its own translateZ independently: background recedes,
@@ -499,7 +652,6 @@
 
     var layers = [
       { el: document.querySelector('.hero__frame'), z: 45 },
-      { el: document.querySelector('.hero__content'), z: 75 },
       { el: document.querySelector('.hero__brand'), z: 115 }
     ];
 
@@ -521,98 +673,6 @@
         }
       );
     });
-  }
-
-  /* ---------- metallic 3D letters: split every [data-metal] run into chars and tilt each toward the
-     cursor. The runs live in the scrolling marquee, so their positions change every frame:
-     letters are only measured while the pointer is near their band, and reset when it leaves. ---------- */
-  function setupMetalText() {
-    var wraps = [].slice.call(document.querySelectorAll('[data-metal]'));
-    if (!wraps.length) return;
-
-    var groups = wraps.map(function (wrap) {
-      var fullText = wrap.textContent;
-      wrap.textContent = '';
-      var letters = fullText.split('').map(function (ch) {
-        var span = document.createElement('span');
-        span.className = 'metal-letter';
-        var glyph = ch === ' ' ? '\u00A0' : ch; // a plain space inside an inline-block collapses to nothing
-        span.textContent = glyph;
-        span.setAttribute('data-char', glyph);
-        wrap.appendChild(span);
-        return span;
-      });
-      return { band: wrap.closest('.marquee') || wrap, letters: letters, active: false, quick: null };
-    });
-
-    var isTouch = window.matchMedia('(hover: none)').matches;
-    if (reduceMotion || isTouch || !hasGSAP) return;
-
-    var TILT_RADIUS = 320; // px — letters beyond this distance from the cursor stay flat
-    var MAX_TILT = 42; // deg
-    var MAX_POP = 58; // px translateZ at the cursor's exact position
-
-    groups.forEach(function (g) {
-      g.quick = g.letters.map(function (el) {
-        return {
-          rx: gsap.quickTo(el, 'rotationX', { duration: 0.45, ease: 'power3.out' }),
-          ry: gsap.quickTo(el, 'rotationY', { duration: 0.45, ease: 'power3.out' }),
-          tz: gsap.quickTo(el, 'z', { duration: 0.45, ease: 'power3.out' }),
-          shine: gsap.quickTo(el, '--shine', { duration: 0.35, ease: 'power2.out' })
-        };
-      });
-    });
-
-    function reset(g) {
-      g.quick.forEach(function (q, i) {
-        q.rx(0); q.ry(0); q.tz(0); q.shine(50);
-        g.letters[i].style.filter = 'none';
-      });
-      g.active = false;
-    }
-
-    var ticking = false;
-    var lastX = 0, lastY = 0;
-
-    function applyTilt() {
-      ticking = false;
-      groups.forEach(function (g) {
-        var band = g.band.getBoundingClientRect();
-        var near = lastY > band.top - TILT_RADIUS && lastY < band.bottom + TILT_RADIUS &&
-                   band.bottom > 0 && band.top < window.innerHeight;
-        if (!near) { if (g.active) reset(g); return; }
-        g.active = true;
-        g.letters.forEach(function (el, i) {
-          var r = el.getBoundingClientRect();
-          var dx = lastX - (r.left + r.width / 2);
-          var dy = lastY - (r.top + r.height / 2);
-          var influence = Math.max(0, 1 - Math.sqrt(dx * dx + dy * dy) / TILT_RADIUS);
-          var ry = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (dx / 11) * influence);
-          var rx = gsap.utils.clamp(-MAX_TILT, MAX_TILT, (-dy / 11) * influence);
-          var q = g.quick[i];
-          q.ry(ry);
-          q.rx(rx);
-          q.tz(MAX_POP * influence);
-          // brushed-metal highlight slides across the glyph as it turns, like light catching a tilted blade
-          q.shine(50 + gsap.utils.clamp(-50, 50, ry * 1.6));
-          // no shadow at rest (keeps the letters crisp); it grows only as a letter lifts toward the cursor
-          el.style.filter = influence < 0.02 ? 'none' :
-            'drop-shadow(' + (-ry * 0.35).toFixed(1) + 'px ' + (rx * -0.35).toFixed(1) +
-            'px ' + (influence * 12).toFixed(1) + 'px rgba(0,0,0,' + (influence * 0.6).toFixed(2) + '))';
-        });
-      });
-    }
-
-    window.addEventListener('mousemove', function (e) {
-      lastX = e.clientX;
-      lastY = e.clientY;
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(applyTilt);
-      }
-    }, { passive: true });
-
-    window.addEventListener('mouseleave', function () { groups.forEach(reset); });
   }
 
   /* ---------- hero image trail: every ~100px of pointer travel, the next image drops at the
