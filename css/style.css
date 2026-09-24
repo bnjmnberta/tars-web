@@ -614,7 +614,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 /* ============================================
    SERVICES — sticky stack
    ============================================ */
-.services{position:relative;z-index:2;background:var(--c-black);}
+/* gap above the first card matches the stack's side gutter (.stack__step left/right) */
+.services{position:relative;z-index:2;background:var(--c-black);padding-top:var(--space-3);}
+@media (max-width:600px){.services{padding-top:var(--space-1);}}
 
 /* Each card sits in its own absolutely-positioned .stack__step instead of sharing one flow
    container. A shared container makes cards release their sticky lock at DIFFERENT scrollY
@@ -768,6 +770,24 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__item--maroon h3{--longest:7.8;}  /* INMOBILIARIO */
 .stack__item--cyan h3{--longest:4.3;}    /* DISEÑO */
 .stack__cta{margin-top:var(--space-4);flex-shrink:0;}
+/* one-line title shown in the sliver once the next card covers this one (built by main.js) */
+.stack__peek{
+  position:absolute;
+  top:0;
+  left:var(--space-4);
+  right:var(--space-4);
+  display:flex;
+  align-items:center;
+  font-family:var(--font-display);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:-.02em;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  opacity:0;
+  pointer-events:none;
+}
 .stack__item--cyan .btn{border-color:var(--c-black);color:var(--c-black);}
 .stack__item--cyan .btn:hover{background:var(--c-black);color:var(--c-cyan);}
 

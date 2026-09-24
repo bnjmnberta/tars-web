@@ -280,53 +280,51 @@
         duration: 0.6,
         ease: 'power3.out',
         stagger: 0.06,
+        // measured on the (non-sticky) step: a sticky card's own box moves with the scroll, so its
+        // start would be wrong after any refresh made mid-stack. Plays once and stays: reversing
+        // it would blank titles that are still on screen when scrolling back up
         scrollTrigger: {
-          trigger: item,
+          trigger: item.closest('.stack__step') || item,
           start: 'top 55%',
-          toggleActions: 'play none none reverse'
+          toggleActions: 'play none none none'
         }
       });
     });
   }
 
-  /* ---------- each card's own title shrinks into the sliver strip that keeps peeking out once
-     the next card stacks over it, instead of a separate duplicate label sitting there. Scrubbed
-     to the exact scroll range right before the next card's sticky pin engages, so the title lands
-     at its shrunk size/position at the same instant the next card starts covering everything else —
-     no jump. Padding-top animates to whatever leaves the shrunk title vertically centered in the
-     sliver (not flush to its top), using the h3's own line-height ratio so it's exact at any size.
-     Skipped on narrow screens: the sliver there is only ~22px tall, too tight for a legible word. */
+  /* ---------- as the next card slides over, the card hands its title over to the sliver strip
+     that keeps peeking out. Nothing reflows: the big title only scales down toward the strip and
+     fades (a font-size tween would re-wrap "FLYERS | VIDEOS" from two lines to one mid-scroll and
+     jolt everything under it), the copy and drawing fade with it, and a one-line copy of the title
+     fades in centred in the strip. Scrubbed over the last stretch before the next card's pin
+     engages. Skipped on narrow screens: the sliver there is only ~22px, too tight for a word. */
   function setupStackTitleShrink() {
     var items = [].slice.call(document.querySelectorAll('.stack__item'));
     if (items.length < 2 || reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') return;
     if (window.matchMedia('(max-width: 700px)').matches) return;
 
-    var TRANSITION_PX = 260; // scroll distance the shrink is scrubbed over
+    var TRANSITION_PX = 260; // scroll distance the hand-over is scrubbed over
 
     for (var i = 0; i < items.length - 1; i++) {
       (function (item, next) {
         var shape = item.querySelector('.stack__shape');
-        var h3 = shape.querySelector('h3');
+        var h3 = shape && shape.querySelector('h3');
         var step = next.closest('.stack__step');
-        if (!shape || !h3 || !step) return;
+        if (!h3 || !step) return;
 
-        var thisTop = parseFloat(getComputedStyle(item).top);
         var nextTop = parseFloat(getComputedStyle(next).top);
-        var sliverH = nextTop - thisTop; // how tall the peeking strip actually is (56px desktop)
-        var cs = getComputedStyle(h3);
-        var lineHeightRatio = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize); // unitless, same at any font-size
-        var targetFontSize = Math.max(14, sliverH * 0.42);
-        var targetPaddingTop = Math.max(0, (sliverH - targetFontSize * lineHeightRatio) / 2);
+        var sliverH = nextTop - parseFloat(getComputedStyle(item).top);
+        var peekSize = Math.max(14, sliverH * 0.62);
 
-        // resting values come from the stylesheet (they change with the viewport), read with the
-        // tween's own inline value cleared, and re-read on every refresh
-        function atRest(el, prop) {
-          var keep = el.style[prop];
-          el.style[prop] = '';
-          var v = getComputedStyle(el)[prop];
-          el.style[prop] = keep;
-          return v;
-        }
+        var peek = document.createElement('span');
+        peek.className = 'stack__peek';
+        peek.setAttribute('aria-hidden', 'true');
+        peek.textContent = h3.textContent;
+        peek.style.height = sliverH + 'px';
+        peek.style.fontSize = peekSize + 'px';
+        shape.appendChild(peek);
+
+        var fades = [shape.querySelector('.stack__expand'), shape.querySelector('.stack__art')].filter(Boolean);
 
         gsap.timeline({
           scrollTrigger: {
@@ -334,15 +332,21 @@
             start: 'top top+=' + (nextTop + TRANSITION_PX),
             end: 'top top+=' + nextTop,
             scrub: true,
-            invalidateOnRefresh: true
-          }
+            invalidateOnRefresh: true // the title's size follows the column width
+          },
+          defaults: { ease: 'none' }
         })
-          .fromTo(shape, { paddingTop: function () { return atRest(shape, 'paddingTop'); } },
-            { paddingTop: targetPaddingTop, ease: 'none', immediateRender: false }, 0)
-          .fromTo(h3, { fontSize: function () { return atRest(h3, 'fontSize'); } },
-            { fontSize: targetFontSize, ease: 'none', immediateRender: false }, 0)
-          // the drawing fills the card up to its top edge — fade it so only the title sits in the strip
-          .to(shape.querySelector('.stack__art'), { opacity: 0, ease: 'none' }, 0);
+          .fromTo(h3, { scale: 1, x: 0, y: 0 }, {
+            scale: function () { return peekSize / parseFloat(getComputedStyle(h3).fontSize); },
+            x: function () { return peek.offsetLeft - h3.offsetLeft; },
+            y: function () { return (sliverH - peekSize) / 2 - h3.offsetTop; },
+            transformOrigin: '0 0',
+            duration: 1,
+            immediateRender: false
+          }, 0)
+          .fromTo(h3, { opacity: 1 }, { opacity: 0, duration: 0.45, immediateRender: false }, 0.15)
+          .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.5, immediateRender: false }, 0)
+          .fromTo(peek, { opacity: 0 }, { opacity: 1, duration: 0.45, immediateRender: false }, 0.5);
       })(items[i], items[i + 1]);
     }
   }
@@ -383,12 +387,15 @@
           var len = el.getTotalLength();
           var o = { p: 0 };
           function paint() {
+            // not started = not rendered: getTotalLength() runs a hair short on ellipses and
+            // curves, so a zero-length dash still leaves a speck at the path's start
+            el.style.visibility = o.p > 0 ? 'visible' : 'hidden';
             el.style.fillOpacity = Math.min(1, Math.max(0, (o.p - 0.15) / 0.85));
             if (o.p >= 0.999) {
               el.style.strokeDasharray = 'none';
               el.style.strokeDashoffset = '0';
             } else {
-              el.style.strokeDasharray = len + ' ' + len;
+              el.style.strokeDasharray = len + ' ' + len * 2;
               el.style.strokeDashoffset = len * (1 - o.p);
             }
           }
@@ -543,8 +550,6 @@
   function createWriter(box) {
     var para = box && box.querySelector('.stack__why');
     if (!para) return null;
-    var shape = box.closest('.stack__shape');
-    var h3 = shape && shape.querySelector('h3');
     var NS = 'http://www.w3.org/2000/svg';
     var words = readWords(para);
     var shaped = null;
@@ -554,15 +559,8 @@
     var progress = 0;
 
     function layout() {
-      // measure the box at rest: the title-shrink scrub may have left inline sizes on the card
-      var keepPad = shape.style.paddingTop;
-      var keepFont = h3 ? h3.style.fontSize : '';
-      shape.style.paddingTop = '';
-      if (h3) h3.style.fontSize = '';
       var W = box.clientWidth;
       var H = box.clientHeight;
-      shape.style.paddingTop = keepPad;
-      if (h3) h3.style.fontSize = keepFont;
       if (W < 40 || H < 20) return;
 
       var s = fitSize(shaped, W, H);
