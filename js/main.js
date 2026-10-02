@@ -19,8 +19,10 @@
     setupReveals();
     setupStackReveals();
     setupStackTitleShrink();
+    setupStackCollapse();
     setupStackBuild();
     setupProcess();
+    setupCase();
     setupHeroVideo();
     setupHeroDepth();
     setupHeroTrail();
@@ -356,6 +358,90 @@
           .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.5, immediateRender: false }, 0)
           .fromTo(peek, { opacity: 0 }, { opacity: 1, duration: 0.45, immediateRender: false }, 0.5);
       })(items[i], items[i + 1]);
+    }
+  }
+
+  /* ---------- once the last card has built, it folds into a sliver like the others: its title
+     hands over to a one-line label, its copy/drawing/button fade, and the card clips up to a
+     strip. That leaves all five titles stacked together at the top; the stack's --tail keeps
+     them pinned while "cómo trabajamos" (pulled up by the stack's negative margin) slides over
+     them. Scrubbed, so scrolling back unfolds the card again. ---------- */
+  function setupStackCollapse() {
+    var stack = document.querySelector('.stack');
+    var items = [].slice.call(document.querySelectorAll('.stack__item'));
+    if (!stack || items.length < 2 || reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') return;
+
+    var FOLD_PX = 250; // scroll distance the fold is scrubbed over
+    var item = items[items.length - 1];
+    var prev = items[items.length - 2];
+    var step = item.closest('.stack__step');
+    var shape = item.querySelector('.stack__shape');
+    var h3 = shape.querySelector('h3');
+    var withLabel = !window.matchMedia('(max-width: 700px)').matches; // the phone sliver is too thin for a word
+
+    function top(el) { return parseFloat(getComputedStyle(el).top); }
+    function hold() { return parseFloat(getComputedStyle(stack).getPropertyValue('--hold')) || 0; }
+    var sliverH = top(item) - top(prev);
+    var radius = parseFloat(getComputedStyle(shape).borderTopLeftRadius) || 0;
+    // the cards behind stay `radius` longer than their strip to fill the rounded top corners of
+    // the card in front; the last strip's own bottom corners stay small enough to keep covering
+    // that overhang
+    var bottomR = Math.max(0, Math.min(radius, sliverH - radius));
+    var behind = items.slice(0, -1).map(function (it) { return it.querySelector('.stack__shape'); });
+    function full() { return 'inset(0px 0px 0px 0px round ' + radius + 'px ' + radius + 'px ' + radius + 'px ' + radius + 'px)'; }
+
+    var fades = [shape.querySelector('.stack__expand'), shape.querySelector('.stack__art'), shape.querySelector('.stack__cta > *')].filter(Boolean); // the cta box itself belongs to its entrance reveal
+
+    var tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: step,
+        // starts as soon as the card's own build (the first 90% of --hold) is done
+        start: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20); },
+        end: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20 - FOLD_PX); },
+        scrub: true,
+        invalidateOnRefresh: true
+      },
+      defaults: { ease: 'none' }
+    });
+
+    // the cards behind fold first, while the last card still hides them completely
+    tl.fromTo(behind, { clipPath: full }, {
+      clipPath: function (k, el) {
+        return 'inset(0px 0px ' + (el.offsetHeight - sliverH - radius) + 'px 0px round ' + radius + 'px ' + radius + 'px 0px 0px)';
+      },
+      duration: 0.001,
+      immediateRender: false
+    }, 0)
+      .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.45, immediateRender: false }, 0)
+      .fromTo(shape, { clipPath: full() }, {
+        clipPath: function () {
+          return 'inset(0px 0px ' + (shape.offsetHeight - sliverH) + 'px 0px round ' + radius + 'px ' + radius + 'px ' + bottomR + 'px ' + bottomR + 'px)';
+        },
+        duration: 0.8,
+        ease: 'power2.inOut',
+        immediateRender: false
+      }, 0.2);
+
+    if (withLabel && h3) {
+      var peekSize = Math.max(14, sliverH * 0.62);
+      var peek = document.createElement('span');
+      peek.className = 'stack__peek';
+      peek.setAttribute('aria-hidden', 'true');
+      peek.textContent = h3.textContent;
+      peek.style.height = sliverH + 'px';
+      peek.style.fontSize = peekSize + 'px';
+      shape.appendChild(peek);
+
+      tl.fromTo(h3, { scale: 1, x: 0, y: 0 }, {
+        scale: function () { return peekSize / parseFloat(getComputedStyle(h3).fontSize); },
+        x: function () { return peek.offsetLeft - h3.offsetLeft; },
+        y: function () { return (sliverH - peekSize) / 2 - h3.offsetTop; },
+        transformOrigin: '0 0',
+        duration: 1,
+        immediateRender: false
+      }, 0)
+        .fromTo(h3, { opacity: 1 }, { opacity: 0, duration: 0.45, immediateRender: false }, 0.15)
+        .fromTo(peek, { opacity: 0 }, { opacity: 1, duration: 0.45, immediateRender: false }, 0.5);
     }
   }
 
@@ -720,6 +806,70 @@
         });
         addStep(tl, p, 0, -140);
       });
+    });
+  }
+
+  /* ---------- clientes: the logo panel's pixel floor (sparser toward the top, with a few squares
+     in the logo's own red and blues) and a one-time entrance — panel settles, the floor assembles
+     square by square, the logo and the copy rise in. Plays once and stays. ---------- */
+  function setupCase() {
+    var brand = document.querySelector('.case__brand');
+    if (!brand) return;
+    var mosaic = brand.querySelector('.case__mosaic');
+    var logo = brand.querySelector('.case__logo');
+    var info = [].slice.call(document.querySelectorAll('.case__info > *'));
+    var head = [].slice.call(document.querySelectorAll('.case__head > *'));
+    var ACCENTS = ['#f2391e', '#19a9d6', '#1467b1'];
+    var animate = hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduceMotion;
+    var shown = false;
+
+    function buildMosaic() {
+      var cols = window.innerWidth < 600 ? 14 : 24;
+      var cell = mosaic.clientWidth / cols;
+      var rows = Math.max(1, Math.round(mosaic.clientHeight / cell));
+      mosaic.style.setProperty('--cols', cols);
+      mosaic.innerHTML = '';
+      for (var r = 0; r < rows; r++) {
+        var density = 0.25 + 0.75 * (r + 1) / rows; // fills in toward the bottom edge
+        for (var c = 0; c < cols; c++) {
+          var sq = document.createElement('i');
+          if (Math.random() < density) {
+            var accent = Math.random() < 0.035;
+            sq.style.setProperty('--tone', accent
+              ? ACCENTS[Math.floor(Math.random() * ACCENTS.length)]
+              : 'hsl(0 0% ' + (84 + Math.random() * 12).toFixed(1) + '%)');
+          }
+          mosaic.appendChild(sq);
+        }
+      }
+      if (animate && !shown) gsap.set(mosaic.children, { opacity: 0, scale: 0.4 });
+    }
+
+    buildMosaic();
+    var wait;
+    window.addEventListener('resize', function () {
+      clearTimeout(wait);
+      wait = setTimeout(buildMosaic, 200);
+    });
+    if (!animate) return;
+
+    gsap.set(head, { opacity: 0, y: 30 });
+    gsap.set(brand, { opacity: 0, scale: 0.94 });
+    gsap.set(logo, { opacity: 0, y: 24 });
+    gsap.set(info, { opacity: 0, y: 28 });
+
+    ScrollTrigger.create({
+      trigger: '.case',
+      start: 'top 70%',
+      once: true,
+      onEnter: function () {
+        shown = true;
+        gsap.to(head, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08 });
+        gsap.to(brand, { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out', delay: 0.15 });
+        gsap.to(mosaic.children, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', delay: 0.35, stagger: { amount: 1.1, from: 'random' } });
+        gsap.to(logo, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.55 });
+        gsap.to(info, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.4, stagger: 0.08 });
+      }
     });
   }
 

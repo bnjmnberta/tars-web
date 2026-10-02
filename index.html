@@ -71,8 +71,8 @@
   <section class="hero" id="top">
     <div class="hero__scene">
       <h1 class="sr-only">TARS Studio. Diseñamos marcas que se mueven.</h1>
-      <video class="hero__video" data-hero-video autoplay muted loop playsinline preload="metadata" poster="assets/hero-bg-poster.jpg" aria-hidden="true">
-        <source src="assets/hero-bg.mp4" type="video/mp4">
+      <video class="hero__video" data-hero-video autoplay muted loop playsinline preload="metadata" poster="assets/hero-topo-poster.jpg" aria-hidden="true">
+        <source src="assets/hero-topo.mp4" type="video/mp4">
       </video>
       <button class="hero__pause" type="button" data-video-toggle aria-pressed="false" aria-label="Pausar video de fondo">
         <span class="hero__pause-icon" aria-hidden="true"></span>
@@ -351,29 +351,33 @@
     </div>
   </section>
 
-  <section class="case" id="clientes">
-    <p class="case__label" data-reveal>Clientes</p>
-    <div class="case__card" data-reveal>
-      <div class="case__logo">
-        <span class="case__corner case__corner--tl" aria-hidden="true"></span>
-        <span class="case__corner case__corner--br" aria-hidden="true"></span>
-        <img src="assets/santafe-logo-box.jpg" alt="Santa Fe Propiedades" width="680" height="640" loading="lazy">
+  <section class="case" id="clientes" aria-labelledby="clientes-title">
+    <div class="case__head">
+      <p class="case__label">Clientes</p>
+      <h2 class="case__title" id="clientes-title">Marcas que ya <em>confían</em> en nosotros.</h2>
+    </div>
+    <article class="case__feature">
+      <div class="case__brand">
+        <img class="case__logo" src="assets/santafe-logo.png" alt="Santa Fe Propiedades" width="787" height="222" loading="lazy">
+        <div class="case__mosaic" aria-hidden="true"></div>
       </div>
       <div class="case__info">
-        <p class="case__meta">Cliente · Inmobiliaria</p>
-        <h3>Todo su ecosistema digital.</h3>
-        <ol class="case__work" aria-label="Trabajos realizados">
-          <li>Diseño</li>
-          <li>Fotografía</li>
-          <li>Filmación</li>
-          <li>Edición</li>
-        </ol>
+        <p class="case__meta">Inmobiliaria · Santa Fe</p>
+        <h3>Santa Fe Propiedades</h3>
+        <p class="case__desc">Llevamos todo su ecosistema digital: el diseño de sus piezas, las fotos y los videos de cada propiedad y la edición del contenido para sus redes.</p>
+        <ul class="case__work" aria-label="Qué hacemos para ellos">
+          <li style="--hue:var(--c-green)">Diseño</li>
+          <li style="--hue:var(--c-blue)">Fotografía</li>
+          <li style="--hue:var(--c-yellow)">Filmación</li>
+          <li style="--hue:var(--c-cyan)">Edición</li>
+          <li style="--hue:var(--c-white)">Ecosistema digital</li>
+        </ul>
         <div class="case__actions">
           <a href="https://instagram.com/santafepropiedades" class="case__handle" target="_blank" rel="noopener">@santafepropiedades <span aria-hidden="true">↗</span></a>
-          <a href="#contacto" class="btn">Quiero algo así <span aria-hidden="true">→</span></a>
+          <a href="#contacto" class="btn btn--primary">Quiero algo así <span aria-hidden="true">→</span></a>
         </div>
       </div>
-    </div>
+    </article>
   </section>
 
   <section class="cta" id="contacto">
