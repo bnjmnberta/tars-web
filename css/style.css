@@ -436,6 +436,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   object-fit:cover;
   z-index:0;
   pointer-events:none;
+  opacity:.4; /* bright white contour lines: dimmed so the white wordmark stays the focus */
 }
 /* giant wordmark (Analogue-style): solid white on black, sized to the space above the headline so
    the two never overlap — container query units (cqh) read that leftover height directly */
@@ -630,25 +631,40 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack{
   --hold:900px;
   --step:calc(100vh - var(--nav-h) - 32px + var(--hold));
-  position:relative;height:calc(var(--step) * 5 + 500px + 60vh);padding:0 var(--space-3);
+  /* cards pin from near the very top: the nav hides itself while scrolling down, so its strip
+     is used for card instead of being left empty */
+  --top0:var(--space-2);
+  --gap-b:var(--space-2);  /* room under the lowest pinned card */
+  --off-max:176px;         /* sticky offset of the last card (4 sliver strips of 44px) */
+  /* each step ends at 5 x --step + --end + its card's --off: with every card the same height,
+     that is what makes all five release on the same scroll position */
+  --end:calc(116px + var(--tail));
+  /* the five title strips stay pinned for --tail more scroll after the last card; the negative
+     bottom margin pulls the next section up by one screen so it slides over them, covering the
+     strips exactly as they release. Sized so that section starts rising ~100px into the last
+     card's fold (main.js), right after its build — no dead scroll in between */
+  --tail:calc(100vh - var(--hold) * .1 - 288px);
+  position:relative;height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding:0 var(--space-3);
+  margin-bottom:calc(var(--top0) - 100vh);
 }
 .stack__step{position:absolute;left:var(--space-3);right:var(--space-3);}
-.stack__step:nth-child(1){top:0;height:calc(var(--step) * 5 + 276px);}
-.stack__step:nth-child(2){top:var(--step);height:calc(var(--step) * 4 + 332px);}
-.stack__step:nth-child(3){top:calc(var(--step) * 2);height:calc(var(--step) * 3 + 388px);}
-.stack__step:nth-child(4){top:calc(var(--step) * 3);height:calc(var(--step) * 2 + 444px);}
-.stack__step:nth-child(5){top:calc(var(--step) * 4);height:calc(var(--step) + 500px);}
+.stack__step:nth-child(1){top:0;height:calc(var(--step) * 5 + var(--end) + var(--off));}
+.stack__step:nth-child(2){top:var(--step);height:calc(var(--step) * 4 + var(--end) + var(--off));}
+.stack__step:nth-child(3){top:calc(var(--step) * 2);height:calc(var(--step) * 3 + var(--end) + var(--off));}
+.stack__step:nth-child(4){top:calc(var(--step) * 3);height:calc(var(--step) * 2 + var(--end) + var(--off));}
+.stack__step:nth-child(5){top:calc(var(--step) * 4);height:calc(var(--step) + var(--end) + var(--off));}
 .stack__item{
   position:sticky;
   display:block;
   color:var(--c-black);
   background:transparent; /* no backing chip on any card — the corner cutout just shows whatever real card sits behind on screen */
 }
-.stack__step:nth-child(1) .stack__item{top:var(--nav-h);}
-.stack__step:nth-child(2) .stack__item{top:calc(var(--nav-h) + 56px);}
-.stack__step:nth-child(3) .stack__item{top:calc(var(--nav-h) + 112px);}
-.stack__step:nth-child(4) .stack__item{top:calc(var(--nav-h) + 168px);}
-.stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 224px);}
+.stack__item{top:calc(var(--top0) + var(--off));}
+.stack__step:nth-child(1){--off:0px;}
+.stack__step:nth-child(2){--off:44px;}
+.stack__step:nth-child(3){--off:88px;}
+.stack__step:nth-child(4){--off:132px;}
+.stack__step:nth-child(5){--off:176px;}
 .stack__item--blue{color:var(--c-white);}
 .stack__item--maroon{color:var(--c-white);}
 .stack__item--green{--card-bg:var(--c-green);}
@@ -659,15 +675,12 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 
 .stack__shape{
   position:relative;
-  height:calc(100vh - var(--nav-h) - 32px); /* fixed to one screen — the title stays put and
-    .stack__expand scrolls internally instead of the card growing taller than the viewport */
+  /* every card the same height: whatever fits under the LAST card's pinned spot, so each one is
+     seen whole while it's on top (the earlier ones end higher and the next card covers them) */
+  height:calc(100vh - var(--top0) - var(--off-max) - var(--gap-b));
   padding:var(--space-5) var(--space-4);
   overflow:hidden;
-  border-top-left-radius:35px; /* top corners only — a rounded bottom clashes with the next
-    card's rounded top right below it (double-curve gap). The corner cutout always reveals the
-    real card sitting behind it on screen — never black — thanks to the transparent backing
-    plus the generous -24px overlap above */
-  border-top-right-radius:35px;
+  border-radius:35px;
   /* two equal columns that fill the whole card: copy on the left, drawing on the right */
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -744,8 +757,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__item--maroon .stack__shape{background:var(--c-maroon);}
 .stack__item--cyan .stack__shape{background:var(--c-cyan);}
 .stack__item--cyan .stack__shape{box-shadow:0 24px 50px -16px rgba(0,0,0,.5);}
-/* last card in the stack — nothing sits below it, so round the bottom too */
-.stack__item--cyan .stack__shape{border-bottom-left-radius:35px;border-bottom-right-radius:35px;}
 
 .stack__inner{
   grid-column:1;
@@ -800,21 +811,26 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .process{
   position:relative;z-index:2;
   background:var(--c-black);
+  /* it slides up over the folded card strips: a rounded, hairline-edged top makes it read as a
+     sheet passing over them rather than black simply eating them */
+  border-radius:35px 35px 0 0;
+  border-top:1px solid rgba(246,246,241,.2);
 }
 .process__grid{
   display:grid;
   grid-template-columns:minmax(0,5fr) minmax(0,7fr);
   gap:var(--space-5);
   align-items:center;
-  padding:var(--space-6) var(--space-3);
+  padding:var(--space-5) var(--space-3) var(--space-6);
 }
+/* the stage sticks just under the nav at its own height (not a centred 100vh box, which left
+   a screen-sized gap after the cards) */
 @media (min-width:901px) and (min-height:620px){
   .process{height:420vh;}
   .process__grid{
     position:sticky;
-    top:0;
-    height:100vh;
-    padding:calc(var(--nav-h) + var(--space-3)) var(--space-3) var(--space-4);
+    top:var(--nav-h);
+    padding:var(--space-4) var(--space-3);
   }
 }
 .process__label{
@@ -894,6 +910,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .process__grid{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
 }
 @media (max-width:600px){
+  .process{border-radius:18px 18px 0 0;}
   .process__grid{padding:var(--space-5) var(--space-2);}
   .process__track{--node:56px;}
   .process__step{column-gap:var(--space-3);padding:var(--space-3) 0;}
@@ -907,72 +924,113 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   background:var(--c-black);
   padding:var(--space-6) var(--space-3);
 }
+.case__head{margin-bottom:var(--space-5);}
 .case__label{
   font-family:var(--font-mono);
   color:var(--c-green);
   text-transform:uppercase;
   letter-spacing:.1em;
-  font-size:.9rem;
-  margin-bottom:var(--space-4);
+  font-size:clamp(.9rem,1.1vw,1.1rem);
+  margin-bottom:var(--space-3);
 }
-.case__card{
+.case__title{
+  font-family:var(--font-copy);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:-.02em;
+  line-height:.95;
+  font-size:clamp(2.6rem,6.2vw,7.5rem);
+  max-width:14ch;
+}
+.case__title em{
+  font-family:var(--font-accent);
+  font-style:normal;
+  font-size:1.12em;
+  color:var(--c-green);
+}
+.case__feature{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-columns:minmax(0,7fr) minmax(0,5fr);
   gap:var(--space-5);
   align-items:center;
 }
-/* logo tile: the client's own lightbox carries the name, so nothing else repeats it */
+/* the client's mark on a light panel of its own (it is black ink), with a pixel floor that
+   nods to the squares in the logo — assembled by main.js as the panel comes in */
+.case__brand{
+  position:relative;
+  aspect-ratio:4/3;
+  border-radius:35px;
+  background:var(--c-white);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
 .case__logo{
   position:relative;
-  border:2px solid var(--c-white);
-  background:var(--c-black);
-  aspect-ratio:1/1;
-  overflow:hidden;
+  z-index:1;
+  width:min(72%,560px);
+  height:auto;
+  margin-bottom:12%;
 }
-.case__logo img{
-  width:100%;height:100%;
-  object-fit:cover;
-}
-.case__corner{
+.case__mosaic{
   position:absolute;
-  z-index:2;
-  width:44px;height:44px;
-  border:0 solid var(--c-green);
-  pointer-events:none;
+  left:0;right:0;bottom:0;
+  height:38%;
+  display:grid;
+  grid-template-columns:repeat(var(--cols,24),1fr);
+  grid-auto-rows:1fr;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 55%);
+  mask-image:linear-gradient(to bottom,transparent,#000 55%);
 }
-.case__corner--tl{top:12px;left:12px;border-width:2px 0 0 2px;}
-.case__corner--br{bottom:12px;right:12px;border-width:0 2px 2px 0;}
+.case__mosaic i{display:block;background:var(--tone);}
+
 .case__meta{
   font-family:var(--font-mono);
   text-transform:uppercase;
   letter-spacing:.08em;
-  font-size:.85rem;
+  font-size:.9rem;
   color:var(--c-green);
 }
 .case__info h3{
-  font-size:clamp(2.2rem,5.2vw,4.2rem);
+  font-size:clamp(2.4rem,4.6vw,5rem);
   margin-top:var(--space-2);
+}
+.case__desc{
+  margin-top:var(--space-3);
+  max-width:44ch;
+  font-size:clamp(1.05rem,1.35vw,1.35rem);
+  line-height:1.45;
+  color:rgba(246,246,241,.72);
 }
 .case__work{
   list-style:none;
   margin:var(--space-4) 0 0;
   padding:0;
-  border-bottom:2px solid rgba(246,246,241,.22);
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
 }
 .case__work li{
-  display:flex;
-  align-items:baseline;
-  gap:var(--space-3);
-  padding:.9rem .25rem;
-  border-top:2px solid rgba(246,246,241,.22);
-  font-family:var(--font-display);
-  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  gap:.55rem;
+  padding:.55rem 1rem;
+  border:2px solid rgba(246,246,241,.22);
+  border-radius:999px;
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:.85rem;
   text-transform:uppercase;
-  font-size:clamp(1.3rem,2.4vw,1.9rem);
-  letter-spacing:-.01em;
-  transition:padding-left .3s var(--ease-brutal),color .2s;
+  letter-spacing:.04em;
+  transition:border-color .25s var(--ease-brutal);
 }
-.case__work li:hover{padding-left:1rem;color:var(--c-green);}
+.case__work li::before{
+  content:'';
+  width:.6rem;height:.6rem;
+  border-radius:50%;
+  background:var(--hue);
+}
+.case__work li:hover{border-color:var(--hue);}
 .case__actions{
   display:flex;
   flex-wrap:wrap;
@@ -983,12 +1041,23 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 .case__handle{
   font-family:var(--font-mono);
-  font-size:.9rem;
+  font-size:.95rem;
   border-bottom:2px solid var(--c-white);
   padding-bottom:2px;
   transition:color .2s,border-color .2s;
 }
 .case__handle:hover,.case__handle:focus-visible{color:var(--c-green);border-color:var(--c-green);}
+
+@media (max-width:900px){
+  .case__feature{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
+}
+@media (max-width:600px){
+  .case{padding:var(--space-5) var(--space-2);}
+  .case__head{margin-bottom:var(--space-4);}
+  .case__brand{border-radius:18px;}
+  .case__logo{width:82%;}
+}
+
 /* ============================================
    CTA
    ============================================ */
@@ -1104,7 +1173,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
    RESPONSIVE
    ============================================ */
 @media (max-width:900px){
-  .case__card{grid-template-columns:1fr;}
   .hero__brand{display:none;}
 }
 
@@ -1127,29 +1195,27 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .stack{
     --hold:700px;
     --step:calc(100vh - var(--nav-h) - 24px + var(--hold));
-    height:calc(var(--step) * 5 + 300px + 40vh);padding-left:var(--space-1);padding-right:var(--space-1);
+    --top0:var(--space-1);
+    --gap-b:var(--space-1);
+    --off-max:88px;
+    --end:calc(118px + var(--tail));
+    --tail:calc(100vh - var(--hold) * .1 - 110px);
+    height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding-left:var(--space-1);padding-right:var(--space-1);
   }
   .stack__step{left:var(--space-1);right:var(--space-1);}
-  .stack__step:nth-child(1){height:calc(var(--step) * 5 + 212px);}
-  .stack__step:nth-child(2){top:var(--step);height:calc(var(--step) * 4 + 234px);}
-  .stack__step:nth-child(3){top:calc(var(--step) * 2);height:calc(var(--step) * 3 + 256px);}
-  .stack__step:nth-child(4){top:calc(var(--step) * 3);height:calc(var(--step) * 2 + 278px);}
-  .stack__step:nth-child(5){top:calc(var(--step) * 4);height:calc(var(--step) + 300px);}
-  .stack__step:nth-child(1) .stack__item{top:calc(var(--nav-h) + 22px);}
-  .stack__step:nth-child(2) .stack__item{top:calc(var(--nav-h) + 44px);}
-  .stack__step:nth-child(3) .stack__item{top:calc(var(--nav-h) + 66px);}
-  .stack__step:nth-child(4) .stack__item{top:calc(var(--nav-h) + 88px);}
-  .stack__step:nth-child(5) .stack__item{top:calc(var(--nav-h) + 110px);}
-  .stack__shape{padding:var(--space-4) var(--space-2) var(--space-3);height:calc(100vh - var(--nav-h) - 24px);border-top-left-radius:18px;border-top-right-radius:18px;}
-  .stack__item--cyan .stack__shape{border-bottom-left-radius:18px;border-bottom-right-radius:18px;}
+  .stack__step:nth-child(1){--off:0px;}
+  .stack__step:nth-child(2){--off:22px;}
+  .stack__step:nth-child(3){--off:44px;}
+  .stack__step:nth-child(4){--off:66px;}
+  .stack__step:nth-child(5){--off:88px;}
+  .stack__shape{padding:var(--space-4) var(--space-2) var(--space-3);border-radius:18px;}
   .stack__cta{margin-top:var(--space-3);}
   .stack__cta .btn{padding:.55rem .9rem;font-size:.7rem;min-height:auto;}
-  .case{padding-left:var(--space-2);padding-right:var(--space-2);}
   .footer__top{flex-direction:column;}
 }
 
 /* no build-by-scroll with reduced motion: drop the hold so the stack keeps its original length
    (main.js shows every card fully built) */
 @media (prefers-reduced-motion: reduce){
-  .stack{--hold:0px;}
+  .stack{--hold:0px;--tail:0px;}
 }
