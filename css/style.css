@@ -521,8 +521,11 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .hero__trail img{
   position:absolute;
   top:0;left:0;
+  /* cut-outs of every shape fit the same square box, so a tall one (the figure) isn't twice the
+     size of a wide one */
   width:clamp(140px,17vw,300px);
-  height:auto;
+  height:clamp(140px,17vw,300px);
+  object-fit:contain;
   opacity:0;
   pointer-events:none;
   will-change:transform;
