@@ -222,7 +222,7 @@ body.is-loading{overflow:hidden;height:100vh;}
 /* never hide the bar while a keyboard user is inside it (WCAG 2.2 focus not obscured) */
 .nav.nav--hidden:focus-within{transform:translateY(0);}
 
-.nav__logo{display:flex;align-items:center;gap:.6rem;}
+.nav__logo{display:flex;align-items:center;gap:.6rem;min-height:44px;}
 .nav__logo img{height:34px;width:auto;}
 .nav__logo span{
   font-family:var(--font-display);
@@ -452,7 +452,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   font-family:var(--font-display);
   font-weight:900;
   text-transform:uppercase;
-  font-size:min(22vw,50cqh);
+  font-size:min(24cqw,50cqh);
   line-height:.8;
   letter-spacing:-.06em;
   color:var(--c-white);
@@ -642,7 +642,8 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
      bottom margin pulls the next section up by one screen so it slides over them, covering the
      strips exactly as they release. Sized so that section's top sits right at the last card's
      bottom edge when that card starts folding (main.js), and then rides up with it */
-  --tail:calc(100vh - var(--hold) * .1 - 404px);
+  /* (derived from the step geometry; stays exact when --off-max / --top0 / --gap-b change) */
+  --tail:calc(100vh - var(--hold) * .1 + var(--nav-h) - 64px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
   position:relative;height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding:0 var(--space-3);
   margin-bottom:calc(var(--top0) - 100vh);
 }
@@ -905,6 +906,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   color:rgba(246,246,241,.72);
 }
 
+@media (min-width:701px) and (max-width:1023px){
+  .stack__shape{column-gap:var(--space-4);padding:var(--space-4) var(--space-3);}
+}
 @media (max-width:900px){
   .process__grid{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
 }
@@ -983,6 +987,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   font-size:.9rem;
 }
 .footer__social a{border-bottom:2px solid transparent;}
+/* footer links are small mono text: give them a finger-sized hit area without changing the look */
+.footer__nav a,.footer__social a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;}
+.footer__nav{gap:0;}
 .footer__social a:hover{border-color:var(--c-green);}
 .footer__bottom{
   display:flex;
@@ -1033,9 +1040,11 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .hero__brand{display:none;}
 }
 
-/* below laptop width: one column — copy on top, drawing underneath; both rows get a definite
-   share of the card so the written paragraph can size itself to fill its box */
-@media (max-width:1023px){
+/* phones: one column — copy on top, drawing underneath; both rows get a definite share of the
+   card so the written paragraph can size itself to fill its box */
+/* phones only: on tablets the two-column card (copy | drawing) keeps the written paragraph at a
+   readable size — stacked, its short top row shrank the copy to ~9px at 768px */
+@media (max-width:700px){
   .stack__shape{
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:minmax(0,1.25fr) minmax(90px,1fr);
@@ -1056,7 +1065,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
     --gap-b:var(--space-1);
     --off-max:88px;
     --end:calc(118px + var(--tail));
-    --tail:calc(100vh - var(--hold) * .1 - 218px);
+    --tail:calc(100vh - var(--hold) * .1 + var(--nav-h) - 74px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
     height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding-left:var(--space-1);padding-right:var(--space-1);
   }
   .stack__step{left:var(--space-1);right:var(--space-1);}
@@ -1067,12 +1076,30 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   .stack__step:nth-child(5){--off:88px;}
   .stack__shape{padding:var(--space-4) var(--space-2) var(--space-3);border-radius:18px;}
   .stack__cta{margin-top:var(--space-3);}
-  .stack__cta .btn{padding:.55rem .9rem;font-size:.7rem;min-height:auto;}
+  .stack__cta .btn{padding:.7rem 1rem;font-size:.8rem;min-height:44px;}
   .footer__top{flex-direction:column;}
 }
 
 /* no build-by-scroll with reduced motion: drop the hold so the stack keeps its original length
    (main.js shows every card fully built) */
+/* short screens (phones in landscape): four 44px title strips would leave a card ~150px tall.
+   Cards drop the strips and each one covers the last completely, using the full height */
+@media (max-height:560px){
+  .stack{--top0:var(--space-1);--gap-b:var(--space-1);--off-max:0px;}
+  .stack__step:nth-child(n){--off:0px;}
+  .stack__shape{padding:var(--space-3);}
+  .stack__expand{margin-top:var(--space-2);}
+  .stack__cta{margin-top:var(--space-2);}
+}
+
 @media (prefers-reduced-motion: reduce){
   .stack{--hold:0px;--tail:0px;}
+}
+
+/* small phones: logo, "Hablemos" and the menu toggle must all fit from 360px up (the toggle was
+   pushed past the right edge, and "Cerrar" with it when the menu is open) */
+@media (max-width:420px){
+  .nav{gap:var(--space-2);padding:0 var(--space-2);}
+  .btn--nav{padding:.6rem .8rem;font-size:.75rem;}
+  .nav__menu{padding:0 .8rem;font-size:.75rem;gap:.5rem;}
 }
