@@ -51,39 +51,44 @@
     return;
   }
 
-  /* -------- animated loop: draw bars, fill, pop dot, hold, fade mark -------- */
-  var bars = loader.querySelectorAll('.bar');
-  var solidBars = loader.querySelectorAll('.bar--x1, .bar--x2');
-  var dot = loader.querySelector('.dot');
+  /* -------- animated loop: the mark draws itself back to front, as on the Logos card —
+     each bar's contour traces in (bars in front hide what's behind them), the dot pops in
+     with the first bar, the white bar fills, a short hold, then it fades and starts over
+     until the page is ready -------- */
   var mark = loader.querySelector('.loader__mark');
-  var dashVals = [412, 412, 192]; // bar--x1, bar--x2, bar--accent (DOM order)
+  var bars = [].slice.call(loader.querySelectorAll('.bar'));
+  var solid = loader.querySelector('.bar--solid');
+  var dot = loader.querySelector('.dot');
+  var BLACK = '#0a0a0a';
+  var WHITE = '#f6f6f1';
+  var DRAW = 0.45; // seconds per contour
+  var GAP = 0.3;   // next bar starts this long after the previous one
 
-  var loop = gsap.timeline({ repeat: -1, repeatDelay: 0.15 });
+  var loop = gsap.timeline({ repeat: -1, repeatDelay: 0.1 });
+
+  loop.set(solid, { fill: BLACK }, 0)
+    .set(dot, { visibility: 'visible', opacity: 0, scale: 0, transformOrigin: '50% 50%' }, 0)
+    .set(mark, { opacity: 1 }, 0);
 
   bars.forEach(function (bar, i) {
-    loop.fromTo(bar,
-      { strokeDashoffset: dashVals[i] },
-      { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' },
-      i * 0.12
-    );
+    var len = Math.ceil(bar.getTotalLength()) + 1;
+    var at = i * GAP;
+    // hidden until its turn: a zero-length dash can still leave a speck at the path's start
+    loop.set(bar, { visibility: 'hidden', strokeDasharray: len + ' ' + len * 2, strokeDashoffset: len }, 0)
+      .set(bar, { visibility: 'visible' }, at)
+      .to(bar, { strokeDashoffset: 0, duration: DRAW, ease: 'power2.inOut' }, at)
+      .set(bar, { strokeDasharray: 'none' }, at + DRAW); // clean miter at the closing corner
   });
-  loop.fromTo(solidBars,
-    { fill: 'rgba(246,246,241,0)' },
-    { fill: '#f6f6f1', duration: 0.3, ease: 'power1.out', stagger: 0.06 },
-    '-=0.2'
-  );
-  loop.fromTo(dot,
-    { opacity: 0, scale: 0 },
-    { opacity: 1, scale: 1, duration: 0.25, ease: 'back.out(3)' },
-    '-=0.1'
-  );
-  loop.to({}, { duration: 0.45 }); // hold beat
-  loop.call(function () {
-    if (isReady()) {
-      loop.pause();
-      gsap.to(loader, { opacity: 0, duration: 0.6, ease: 'power2.inOut', onComplete: removeLoader });
-    }
-  });
-  loop.to(mark, { opacity: 0, duration: 0.3, ease: 'power1.in' });
-  loop.set(mark, { opacity: 1 });
+
+  var drawn = (bars.length - 1) * GAP + DRAW;
+  loop.to(dot, { opacity: 1, scale: 1, duration: 0.25, ease: 'back.out(3)' }, DRAW * 0.8)
+    .to(solid, { fill: WHITE, duration: 0.3, ease: 'power1.out' }, drawn)
+    .to({}, { duration: 0.45 }) // hold beat on the finished mark
+    .call(function () {
+      if (isReady()) {
+        loop.pause();
+        gsap.to(loader, { opacity: 0, duration: 0.6, ease: 'power2.inOut', onComplete: removeLoader });
+      }
+    })
+    .to(mark, { opacity: 0, duration: 0.3, ease: 'power1.in' });
 })();

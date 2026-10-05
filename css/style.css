@@ -118,26 +118,22 @@ body.is-loading{overflow:hidden;height:100vh;}
   background:var(--c-black);
 }
 .loader__mark{overflow:visible;}
+/* bars filled with the loader's own black so a bar in front hides the lines behind it, exactly
+   like the logo; the white bar fills in once every contour is drawn (js/loader.js) */
 .loader .bar{
-  fill:none;
+  fill:var(--c-black);
   stroke:var(--c-white);
-  stroke-width:4;
+  stroke-width:9.3;
   stroke-linejoin:miter;
-  vector-effect:non-scaling-stroke;
+  stroke-miterlimit:10;
 }
-.loader .bar--x1,.loader .bar--x2{stroke-dasharray:412;stroke-dashoffset:412;}
-.loader .bar--accent{stroke-dasharray:192;stroke-dashoffset:192;}
-.loader .dot{
-  fill:var(--c-white);
-  opacity:0;
-  transform-box:fill-box;
-  transform-origin:center;
-  transform:scale(0);
-}
-/* static fallback when GSAP / motion is unavailable */
-.loader.is-static .bar{stroke-dashoffset:0;}
-.loader.is-static .bar--x1,.loader.is-static .bar--x2{fill:var(--c-white);}
-.loader.is-static .dot{opacity:1;transform:scale(1);}
+.loader .dot{fill:var(--c-white);}
+/* nothing shows until js/loader.js starts drawing (it runs after the CDN scripts, and showing the
+   finished mark first would flash it before the draw starts over from empty) */
+.loader .bar,.loader .dot{visibility:hidden;}
+/* reduced motion / no GSAP: the finished mark, static */
+.loader.is-static .bar,.loader.is-static .dot{visibility:visible;}
+.loader.is-static .bar--solid{fill:var(--c-white);}
 
 /* ============ skip link ============ */
 .skip-link{
@@ -227,7 +223,7 @@ body.is-loading{overflow:hidden;height:100vh;}
 .nav.nav--hidden:focus-within{transform:translateY(0);}
 
 .nav__logo{display:flex;align-items:center;gap:.6rem;}
-.nav__logo img{height:34px;width:auto;mix-blend-mode:screen;}
+.nav__logo img{height:34px;width:auto;}
 .nav__logo span{
   font-family:var(--font-display);
   font-weight:900;
