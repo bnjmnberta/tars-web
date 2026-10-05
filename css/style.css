@@ -641,9 +641,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   --end:calc(116px + var(--tail));
   /* the five title strips stay pinned for --tail more scroll after the last card; the negative
      bottom margin pulls the next section up by one screen so it slides over them, covering the
-     strips exactly as they release. Sized so that section starts rising ~100px into the last
-     card's fold (main.js), right after its build — no dead scroll in between */
-  --tail:calc(100vh - var(--hold) * .1 - 288px);
+     strips exactly as they release. Sized so that section's top sits right at the last card's
+     bottom edge when that card starts folding (main.js), and then rides up with it */
+  --tail:calc(100vh - var(--hold) * .1 - 404px);
   position:relative;height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding:0 var(--space-3);
   margin-bottom:calc(var(--top0) - 100vh);
 }
@@ -917,148 +917,6 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 }
 
 /* ============================================
-   CASE / CLIENTES
-   ============================================ */
-.case{
-  position:relative;z-index:2;
-  background:var(--c-black);
-  padding:var(--space-6) var(--space-3);
-}
-.case__head{margin-bottom:var(--space-5);}
-.case__label{
-  font-family:var(--font-mono);
-  color:var(--c-green);
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  font-size:clamp(.9rem,1.1vw,1.1rem);
-  margin-bottom:var(--space-3);
-}
-.case__title{
-  font-family:var(--font-copy);
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:-.02em;
-  line-height:.95;
-  font-size:clamp(2.6rem,6.2vw,7.5rem);
-  max-width:14ch;
-}
-.case__title em{
-  font-family:var(--font-accent);
-  font-style:normal;
-  font-size:1.12em;
-  color:var(--c-green);
-}
-.case__feature{
-  display:grid;
-  grid-template-columns:minmax(0,7fr) minmax(0,5fr);
-  gap:var(--space-5);
-  align-items:center;
-}
-/* the client's mark on a light panel of its own (it is black ink), with a pixel floor that
-   nods to the squares in the logo — assembled by main.js as the panel comes in */
-.case__brand{
-  position:relative;
-  aspect-ratio:4/3;
-  border-radius:35px;
-  background:var(--c-white);
-  overflow:hidden;
-  display:grid;
-  place-items:center;
-}
-.case__logo{
-  position:relative;
-  z-index:1;
-  width:min(72%,560px);
-  height:auto;
-  margin-bottom:12%;
-}
-.case__mosaic{
-  position:absolute;
-  left:0;right:0;bottom:0;
-  height:38%;
-  display:grid;
-  grid-template-columns:repeat(var(--cols,24),1fr);
-  grid-auto-rows:1fr;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 55%);
-  mask-image:linear-gradient(to bottom,transparent,#000 55%);
-}
-.case__mosaic i{display:block;background:var(--tone);}
-
-.case__meta{
-  font-family:var(--font-mono);
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  font-size:.9rem;
-  color:var(--c-green);
-}
-.case__info h3{
-  font-size:clamp(2.4rem,4.6vw,5rem);
-  margin-top:var(--space-2);
-}
-.case__desc{
-  margin-top:var(--space-3);
-  max-width:44ch;
-  font-size:clamp(1.05rem,1.35vw,1.35rem);
-  line-height:1.45;
-  color:rgba(246,246,241,.72);
-}
-.case__work{
-  list-style:none;
-  margin:var(--space-4) 0 0;
-  padding:0;
-  display:flex;
-  flex-wrap:wrap;
-  gap:.6rem;
-}
-.case__work li{
-  display:inline-flex;
-  align-items:center;
-  gap:.55rem;
-  padding:.55rem 1rem;
-  border:2px solid rgba(246,246,241,.22);
-  border-radius:999px;
-  font-family:var(--font-mono);
-  font-weight:700;
-  font-size:.85rem;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-  transition:border-color .25s var(--ease-brutal);
-}
-.case__work li::before{
-  content:'';
-  width:.6rem;height:.6rem;
-  border-radius:50%;
-  background:var(--hue);
-}
-.case__work li:hover{border-color:var(--hue);}
-.case__actions{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--space-3);
-  margin-top:var(--space-4);
-}
-.case__handle{
-  font-family:var(--font-mono);
-  font-size:.95rem;
-  border-bottom:2px solid var(--c-white);
-  padding-bottom:2px;
-  transition:color .2s,border-color .2s;
-}
-.case__handle:hover,.case__handle:focus-visible{color:var(--c-green);border-color:var(--c-green);}
-
-@media (max-width:900px){
-  .case__feature{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
-}
-@media (max-width:600px){
-  .case{padding:var(--space-5) var(--space-2);}
-  .case__head{margin-bottom:var(--space-4);}
-  .case__brand{border-radius:18px;}
-  .case__logo{width:82%;}
-}
-
-/* ============================================
    CTA
    ============================================ */
 .cta{
@@ -1199,7 +1057,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
     --gap-b:var(--space-1);
     --off-max:88px;
     --end:calc(118px + var(--tail));
-    --tail:calc(100vh - var(--hold) * .1 - 110px);
+    --tail:calc(100vh - var(--hold) * .1 - 218px);
     height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding-left:var(--space-1);padding-right:var(--space-1);
   }
   .stack__step{left:var(--space-1);right:var(--space-1);}

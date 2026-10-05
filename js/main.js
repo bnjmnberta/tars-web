@@ -22,7 +22,6 @@
     setupStackCollapse();
     setupStackBuild();
     setupProcess();
-    setupCase();
     setupHeroVideo();
     setupHeroDepth();
     setupHeroTrail();
@@ -371,7 +370,6 @@
     var items = [].slice.call(document.querySelectorAll('.stack__item'));
     if (!stack || items.length < 2 || reduceMotion || !hasGSAP || typeof ScrollTrigger === 'undefined') return;
 
-    var FOLD_PX = 250; // scroll distance the fold is scrubbed over
     var item = items[items.length - 1];
     var prev = items[items.length - 2];
     var step = item.closest('.stack__step');
@@ -388,6 +386,10 @@
     // that overhang
     var bottomR = Math.max(0, Math.min(radius, sliverH - radius));
     var behind = items.slice(0, -1).map(function (it) { return it.querySelector('.stack__shape'); });
+    // the fold runs 1:1 with the scroll, over exactly the distance the card's bottom edge travels
+    // up to its strip: the next section, rising right under that edge (see --tail in the CSS),
+    // stays glued to it — no empty band opens between them
+    function foldPx() { return shape.offsetHeight - sliverH; }
     function full() { return 'inset(0px 0px 0px 0px round ' + radius + 'px ' + radius + 'px ' + radius + 'px ' + radius + 'px)'; }
 
     var fades = [shape.querySelector('.stack__expand'), shape.querySelector('.stack__art'), shape.querySelector('.stack__cta > *')].filter(Boolean); // the cta box itself belongs to its entrance reveal
@@ -397,7 +399,7 @@
         trigger: step,
         // starts as soon as the card's own build (the first 90% of --hold) is done
         start: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20); },
-        end: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20 - FOLD_PX); },
+        end: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20 - foldPx()); },
         scrub: true,
         invalidateOnRefresh: true
       },
@@ -412,15 +414,14 @@
       duration: 0.001,
       immediateRender: false
     }, 0)
-      .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.45, immediateRender: false }, 0)
+      .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 0)
       .fromTo(shape, { clipPath: full() }, {
         clipPath: function () {
-          return 'inset(0px 0px ' + (shape.offsetHeight - sliverH) + 'px 0px round ' + radius + 'px ' + radius + 'px ' + bottomR + 'px ' + bottomR + 'px)';
+          return 'inset(0px 0px ' + foldPx() + 'px 0px round ' + radius + 'px ' + radius + 'px ' + bottomR + 'px ' + bottomR + 'px)';
         },
-        duration: 0.8,
-        ease: 'power2.inOut',
+        duration: 1,
         immediateRender: false
-      }, 0.2);
+      }, 0);
 
     if (withLabel && h3) {
       var peekSize = Math.max(14, sliverH * 0.62);
@@ -806,70 +807,6 @@
         });
         addStep(tl, p, 0, -140);
       });
-    });
-  }
-
-  /* ---------- clientes: the logo panel's pixel floor (sparser toward the top, with a few squares
-     in the logo's own red and blues) and a one-time entrance — panel settles, the floor assembles
-     square by square, the logo and the copy rise in. Plays once and stays. ---------- */
-  function setupCase() {
-    var brand = document.querySelector('.case__brand');
-    if (!brand) return;
-    var mosaic = brand.querySelector('.case__mosaic');
-    var logo = brand.querySelector('.case__logo');
-    var info = [].slice.call(document.querySelectorAll('.case__info > *'));
-    var head = [].slice.call(document.querySelectorAll('.case__head > *'));
-    var ACCENTS = ['#f2391e', '#19a9d6', '#1467b1'];
-    var animate = hasGSAP && typeof ScrollTrigger !== 'undefined' && !reduceMotion;
-    var shown = false;
-
-    function buildMosaic() {
-      var cols = window.innerWidth < 600 ? 14 : 24;
-      var cell = mosaic.clientWidth / cols;
-      var rows = Math.max(1, Math.round(mosaic.clientHeight / cell));
-      mosaic.style.setProperty('--cols', cols);
-      mosaic.innerHTML = '';
-      for (var r = 0; r < rows; r++) {
-        var density = 0.25 + 0.75 * (r + 1) / rows; // fills in toward the bottom edge
-        for (var c = 0; c < cols; c++) {
-          var sq = document.createElement('i');
-          if (Math.random() < density) {
-            var accent = Math.random() < 0.035;
-            sq.style.setProperty('--tone', accent
-              ? ACCENTS[Math.floor(Math.random() * ACCENTS.length)]
-              : 'hsl(0 0% ' + (84 + Math.random() * 12).toFixed(1) + '%)');
-          }
-          mosaic.appendChild(sq);
-        }
-      }
-      if (animate && !shown) gsap.set(mosaic.children, { opacity: 0, scale: 0.4 });
-    }
-
-    buildMosaic();
-    var wait;
-    window.addEventListener('resize', function () {
-      clearTimeout(wait);
-      wait = setTimeout(buildMosaic, 200);
-    });
-    if (!animate) return;
-
-    gsap.set(head, { opacity: 0, y: 30 });
-    gsap.set(brand, { opacity: 0, scale: 0.94 });
-    gsap.set(logo, { opacity: 0, y: 24 });
-    gsap.set(info, { opacity: 0, y: 28 });
-
-    ScrollTrigger.create({
-      trigger: '.case',
-      start: 'top 70%',
-      once: true,
-      onEnter: function () {
-        shown = true;
-        gsap.to(head, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08 });
-        gsap.to(brand, { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out', delay: 0.15 });
-        gsap.to(mosaic.children, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', delay: 0.35, stagger: { amount: 1.1, from: 'random' } });
-        gsap.to(logo, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.55 });
-        gsap.to(info, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.4, stagger: 0.08 });
-      }
     });
   }
 
