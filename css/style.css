@@ -99,8 +99,9 @@ p{margin:0;}
   inset:0;
   z-index:9999;
   pointer-events:none;
-  background-image:url('../assets/grain.png');
-  background-size:420px;
+  /* 300px seamless noise tile (25 KB) with the same tone and grain size as the old 1.7 MB scan */
+  background-image:url('../assets/grain.jpg');
+  background-size:300px;
   opacity:.08; /* .18 + overlay blend was muddying black text on bright bg (cyan card) toward dark teal */
   mix-blend-mode:overlay;
 }
