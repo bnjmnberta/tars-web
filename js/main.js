@@ -7,6 +7,12 @@
     gsap.registerPlugin(ScrollTrigger);
   }
   var lenis = null;
+  // assets resolve against this script's own folder, so the same file works on the static page
+  // (js/main.js next to assets/) and inside the WordPress theme
+  var ASSET_BASE = (function () {
+    var src = document.currentScript && document.currentScript.src;
+    return src ? src.replace(/js\/main\.js(\?.*)?$/, '') : '';
+  })();
 
   document.addEventListener('DOMContentLoaded', function () {
     var yearEl = document.querySelector('[data-year]');
@@ -550,11 +556,36 @@
   var WRITE_SCALE = 0.8;     // copy set at 80% of the size that would fill its box — the title leads
   var writeFonts = null;
 
+  /* each card title is as big as its column allows unless its longest word wouldn't fit on one
+     line (css: font-size uses --longest, that word's width in em). Measured here so a title
+     edited later (e.g. from WordPress) can never overflow its card. Resolves before the written
+     copy lays out, since the title's height decides the copy's box. */
+  var titlesFitted = null;
+  function fitServiceTitles() {
+    if (titlesFitted) return titlesFitted;
+    var titles = [].slice.call(document.querySelectorAll('.stack__inner h3'));
+    var ready = document.fonts && document.fonts.load ? document.fonts.load('900 100px Archivo') : Promise.resolve();
+    titlesFitted = ready.then(function () {
+      var ctx = document.createElement('canvas').getContext('2d');
+      ctx.font = '900 100px Archivo, "Arial Black", sans-serif';
+      titles.forEach(function (h3) {
+        var longest = 0;
+        h3.textContent.trim().toUpperCase().split(/\s+/).forEach(function (word) {
+          // -0.02em tracking per letter, as in the h3 styles, plus a little safety
+          var em = ctx.measureText(word).width / 100 - word.length * 0.02;
+          longest = Math.max(longest, em);
+        });
+        if (longest) h3.style.setProperty('--longest', (longest * 1.03).toFixed(3));
+      });
+    }).catch(function () {});
+    return titlesFitted;
+  }
+
   function loadWriteFonts() {
     if (writeFonts) return writeFonts;
     writeFonts = new Promise(function (resolve, reject) {
       if (typeof opentype === 'undefined') { reject(new Error('opentype.js missing')); return; }
-      var urls = ['assets/fonts/MonaSans-Bold.woff', 'assets/fonts/CormorantGaramond-Bold.woff'];
+      var urls = [ASSET_BASE + 'assets/fonts/MonaSans-Bold.woff', ASSET_BASE + 'assets/fonts/CormorantGaramond-Bold.woff'];
       var fonts = [];
       var left = urls.length;
       urls.forEach(function (url, i) {
@@ -718,7 +749,7 @@
       }
     }
 
-    Promise.all([loadWriteFonts(), document.fonts ? document.fonts.ready : null]).then(function (res) {
+    Promise.all([loadWriteFonts(), fitServiceTitles()]).then(function (res) {
       shaped = shapeWords(words, res[0]);
       layout();
       var wait;

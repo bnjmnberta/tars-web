@@ -776,7 +776,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   overflow-wrap:break-word;
   flex-shrink:0;
 }
-.stack__item--green h3{--longest:3.9;}   /* LOGOS */
+.stack__item--green h3{--longest:3.9;}   /* LOGOS — starting values; main.js measures the real ones */
 .stack__item--blue h3{--longest:4.25;}   /* VIDEOS */
 .stack__item--yellow h3{--longest:5.1;}  /* GESTIÓN */
 .stack__item--maroon h3{--longest:7.8;}  /* INMOBILIARIO */
