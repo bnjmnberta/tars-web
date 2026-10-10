@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/style.css?v=20261010c">
+<link rel="stylesheet" href="css/style.css?v=20261016">
 <noscript><style>.loader{display:none}[data-reveal]{opacity:1;transform:none}.hero__bgline i{transform:none}</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
   <div class="menu__foot">
     <a class="menu__social" href="https://wa.me/5493425226537" target="_blank" rel="noopener" style="--hue:var(--c-green)"><span>WhatsApp</span><span aria-hidden="true">↗</span></a>
     <a class="menu__social" href="https://instagram.com/tars.estudio" target="_blank" rel="noopener" style="--hue:var(--c-blue)"><span>Instagram</span><span aria-hidden="true">↗</span></a>
-    <a class="menu__social" href="mailto:tarssolucionesdigitales@gmail.com" style="--hue:var(--c-yellow)"><span>Mail</span><span aria-hidden="true">↗</span></a>
+    <a class="menu__social" href="#mail" data-menu-link style="--hue:var(--c-yellow)"><span>Mail</span><span aria-hidden="true">↗</span></a>
   </div>
 </div>
 
@@ -357,7 +357,97 @@
     <div class="cta__buttons" data-reveal>
       <a href="https://wa.me/5493425226537?text=Hola%20TARS%2C%20quiero%20info" class="btn btn--primary" target="_blank" rel="noopener">WhatsApp</a>
       <a href="https://instagram.com/tars.estudio" class="btn" target="_blank" rel="noopener">Instagram</a>
-      <a href="mailto:tarssolucionesdigitales@gmail.com" class="btn">Mail</a>
+      <button type="button" class="btn" data-mail-toggle aria-expanded="false" aria-controls="mail">Mail</button>
+    </div>
+
+    <div class="mailbox" id="mail">
+      <div class="mailbox__clip">
+        <div class="mailbox__inner">
+          <header class="mailbox__head">
+            <h3 class="mailbox__title" tabindex="-1" data-mail-title>Armá tu mail</h3>
+            <p class="mailbox__lead">Completá lo que puedas y, cuando esté listo, lo abrís en tu correo o en Gmail con todo cargado.</p>
+          </header>
+
+            <form class="mailform" id="mailform" data-to="tarssolucionesdigitales@gmail.com" novalidate>
+
+              <fieldset class="field">
+                <legend>¿Qué necesitás?</legend>
+                <div class="chips">
+                  <label class="chip" style="--hue:var(--c-green);--ink:var(--c-black)"><input type="checkbox" name="service" value="Logos"><span>Logos</span></label>
+                  <label class="chip" style="--hue:var(--c-blue-deep);--ink:var(--c-white)"><input type="checkbox" name="service" value="Flyers | Videos"><span>Flyers | Videos</span></label>
+                  <label class="chip" style="--hue:var(--c-yellow);--ink:var(--c-black)"><input type="checkbox" name="service" value="Gestión de redes"><span>Gestión de redes</span></label>
+                  <label class="chip" style="--hue:var(--c-maroon);--ink:var(--c-white)"><input type="checkbox" name="service" value="Marketing inmobiliario"><span>Marketing inmobiliario</span></label>
+                  <label class="chip" style="--hue:var(--c-cyan);--ink:var(--c-black)"><input type="checkbox" name="service" value="Diseño web"><span>Diseño web</span></label>
+                  <label class="chip" style="--hue:var(--c-black);--ink:var(--c-white)"><input type="checkbox" name="service" value="Otra consulta"><span>Otra consulta</span></label>
+                </div>
+              </fieldset>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-name">Tu nombre <b aria-hidden="true">*</b></label>
+                  <input id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="e-name">
+                  <p class="field__error" id="e-name" hidden>Decinos cómo te llamás.</p>
+                </div>
+                <div class="field">
+                  <label for="f-company">Negocio o proyecto</label>
+                  <input id="f-company" name="company" type="text" autocomplete="organization">
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-email">Tu mail</label>
+                  <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email">
+                </div>
+                <div class="field">
+                  <label for="f-phone">WhatsApp o teléfono</label>
+                  <input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="f-subject">Título del mail</label>
+                <input id="f-subject" name="subject" type="text" placeholder="Ej: Quiero un logo para mi negocio" aria-describedby="h-subject">
+                <p class="field__hint" id="h-subject">Si lo dejás vacío lo armamos con lo que elegiste y tu nombre.</p>
+              </div>
+
+              <div class="field">
+                <label for="f-message">Tu mensaje <b aria-hidden="true">*</b></label>
+                <textarea id="f-message" name="message" rows="7" required aria-describedby="h-message e-message" placeholder="Contanos qué necesitás, para quién es y qué querés lograr. Si ya tenés algo hecho (logo, redes, web), mencionalo."></textarea>
+                <p class="field__hint" id="h-message">Cuanto más detalle, más rápido te respondemos con una propuesta.</p>
+                <p class="field__error" id="e-message" hidden>Escribí un mensaje para poder armar el mail.</p>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-when">¿Para cuándo lo necesitás?</label>
+                  <select id="f-when" name="when">
+                    <option value="">Sin definir</option>
+                    <option>Lo antes posible</option>
+                    <option>En 1 o 2 semanas</option>
+                    <option>Este mes</option>
+                    <option>Sin apuro</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="f-links">Referencias o links</label>
+                  <input id="f-links" name="links" type="text" placeholder="Instagram, web, ejemplos que te gusten" autocomplete="off">
+                </div>
+              </div>
+
+              <div class="mailactions">
+                <button type="button" class="btn btn--primary" data-act="mailto"><span>Abrir en mi correo</span> <span aria-hidden="true">→</span></button>
+                <button type="button" class="btn" data-act="gmail"><span>Abrir en Gmail</span> <span aria-hidden="true">↗</span></button>
+                <button type="button" class="btn" data-act="copy"><span>Copiar mensaje</span></button>
+              </div>
+              <p class="mailstatus" role="status" aria-live="polite" data-status></p>
+              <div class="mailfoot">
+                <p>¿Preferís hablar? Escribinos por <a href="https://wa.me/5493425226537?text=Hola%20TARS%2C%20quiero%20info" target="_blank" rel="noopener">WhatsApp</a>.</p>
+                <button type="reset" class="mailform__reset">Borrar todo</button>
+              </div>
+            </form>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -365,7 +455,7 @@
 <footer class="footer">
   <div class="footer__top">
     <a href="#top" class="footer__logo" aria-label="TARS, volver arriba">
-      <img src="assets/logo-lockup.png" alt="TARS Soluciones Digitales">
+      <img src="assets/logo-tars.png" alt="TARS Soluciones Digitales">
     </a>
     <nav class="footer__nav" aria-label="Navegación de footer">
       <a href="#servicios">Servicios</a>
@@ -375,12 +465,12 @@
     <div class="footer__social">
       <a href="https://instagram.com/tars.estudio" target="_blank" rel="noopener">Instagram</a>
       <a href="https://wa.me/5493425226537" target="_blank" rel="noopener">WhatsApp</a>
-      <a href="mailto:tarssolucionesdigitales@gmail.com">Mail</a>
+      <a href="#mail">Mail</a>
     </div>
   </div>
   <div class="footer__bottom">
     <span>© <span data-year></span> TARS — Soluciones Digitales.</span>
-    <span>Buenos Aires, Argentina.</span>
+    <span>Santa Fe, Argentina.</span>
   </div>
 </footer>
 
@@ -389,8 +479,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
-<script src="js/loader.js?v=20261010c"></script>
+<script src="js/loader.js?v=20261016"></script>
 <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
-<script src="js/main.js?v=20261010c"></script>
+<script src="js/main.js?v=20261016"></script>
+<script src="js/mail.js?v=20261016"></script>
 </body>
 </html>
