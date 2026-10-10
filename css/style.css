@@ -266,6 +266,17 @@ body.menu-open .nav{background:transparent;backdrop-filter:none;border-bottom-co
 body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .nav{z-index:1100;}
 
+/* While the cards are pinned, the bar shrinks to its two buttons floating on the right: scrolling
+   up no longer lays a full-width bar over the pile of card titles at the top of the screen. */
+.nav.nav--over-stack{background:transparent;backdrop-filter:none;border-bottom-color:transparent;pointer-events:none;}
+.nav--over-stack .nav__logo{display:none;}
+.nav--over-stack .btn--nav,.nav--over-stack .nav__menu{pointer-events:auto;background:var(--c-black);}
+.nav--over-stack .btn--nav:hover,.nav--over-stack .btn--nav:focus-visible{background:var(--c-white);}
+.nav--over-stack .nav__menu:hover{background:var(--c-white);}
+@media (max-width:600px){.nav--over-stack .btn--nav{display:none;}.nav--over-stack .nav__menu{margin-left:auto;}}
+body.menu-open .nav.nav--over-stack .nav__logo{display:flex;}
+body.menu-open .nav.nav--over-stack{pointer-events:auto;}
+
 /* ---- full-screen menu: black sheet wipes down, giant links rise out of masks,
    each row floods with a service colour on hover (pure CSS — no JS animation needed) ---- */
 .menu{
@@ -688,6 +699,17 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   grid-template-rows:minmax(0,1fr);
   column-gap:var(--space-5);
   /* this card's REAL color lives here, not on .stack__item — set explicitly per variant below */
+}
+/* End of the stack, driven by main.js (setupStackCollapse): the cards behind tuck into their strip
+   (kept `radius` taller than the strip to fill the rounded top corners of the card in front), and
+   the last card folds up to its own strip as --fold goes 0 → 1. Percentages, so the clip always
+   follows the card's real height. */
+.stack__shape.is-tucked{
+  clip-path:inset(0 0 calc(100% - var(--sliver) - var(--radius)) 0 round var(--radius) var(--radius) 0 0);
+}
+.stack__shape.is-folding{
+  --bottom-fold:calc(var(--radius) - var(--fold,0) * (var(--radius) - var(--bottom-r)));
+  clip-path:inset(0 0 calc(var(--fold,0) * (100% - var(--sliver))) 0 round var(--radius) var(--radius) var(--bottom-fold) var(--bottom-fold));
 }
 /* per-card line illustration, built by scroll while the card holds the top of the stack. It
    takes its whole grid cell and the SVG scales to the largest size that fits (meet), so the

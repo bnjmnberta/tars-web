@@ -3,10 +3,29 @@
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hasGSAP = typeof gsap !== 'undefined';
+  var lenis = null;
   if (hasGSAP && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
+    // The pinned cards are CSS `position: sticky`, and a sticky element that is currently stuck
+    // reports its stuck position, not its natural one. A refresh while the page is scrolled (a
+    // reload that restores the scroll position, a window resize, the browser bars changing) would
+    // therefore measure every card's start and end wrong and leave the animations half-way,
+    // out of step or never finishing. So every refresh measures from the very top, then returns.
+    var scrollBeforeRefresh = 0;
+    var jumpTo = function (y) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+    };
+    ScrollTrigger.addEventListener('refreshInit', function () {
+      scrollBeforeRefresh = window.scrollY;
+      if (scrollBeforeRefresh) jumpTo(0);
+    });
+    ScrollTrigger.addEventListener('refresh', function () {
+      if (scrollBeforeRefresh) jumpTo(scrollBeforeRefresh);
+      scrollBeforeRefresh = 0;
+    });
   }
-  var lenis = null;
+  var stackTriggers = { builds: [], collapse: null }; // filled by setupStackBuild/Collapse, read by setupStackSnap
   // assets resolve against this script's own folder, so the same file works on the static page
   // (js/main.js next to assets/) and inside the WordPress theme
   var ASSET_BASE = (function () {
@@ -27,6 +46,8 @@
     setupStackTitleShrink();
     setupStackCollapse();
     setupStackBuild();
+    setupStackSnap();
+    setupNavOverStack();
     setupProcess();
     setupHeroVideo();
     setupHeroDepth();
@@ -396,7 +417,22 @@
     // up to its strip: the next section, rising right under that edge (see --tail in the CSS),
     // stays glued to it — no empty band opens between them
     function foldPx() { return shape.offsetHeight - sliverH; }
-    function full() { return 'inset(0px 0px 0px 0px round ' + radius + 'px ' + radius + 'px ' + radius + 'px ' + radius + 'px)'; }
+
+    // The folded shapes are clipped with percentages (see .is-tucked / .is-folding in the CSS), so
+    // they stay right even if the window changes height between two ScrollTrigger refreshes; JS only
+    // hands over the few pixel sizes that never depend on the viewport height.
+    behind.concat(shape).forEach(function (el) {
+      el.style.setProperty('--sliver', sliverH + 'px');
+      el.style.setProperty('--radius', radius + 'px');
+      el.style.setProperty('--bottom-r', bottomR + 'px');
+    });
+    var tucked = false;
+    function setTucked(on) {
+      if (on === tucked) return;
+      tucked = on;
+      behind.forEach(function (el) { el.classList.toggle('is-tucked', on); });
+      shape.classList.toggle('is-folding', on);
+    }
 
     var fades = [shape.querySelector('.stack__expand'), shape.querySelector('.stack__art'), shape.querySelector('.stack__cta > *')].filter(Boolean); // the cta box itself belongs to its entrance reveal
 
@@ -407,27 +443,18 @@
         start: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20); },
         end: function () { return 'top top+=' + (top(item) - hold() * 0.9 - 20 - foldPx()); },
         scrub: true,
-        invalidateOnRefresh: true
+        invalidateOnRefresh: true,
+        // the cards behind tuck into their strips the moment the fold starts (the last card still
+        // hides them completely) and open again when it is scrolled back
+        onUpdate: function (self) { setTucked(self.progress > 0); },
+        onRefresh: function (self) { setTucked(self.progress > 0); }
       },
       defaults: { ease: 'none' }
     });
 
-    // the cards behind fold first, while the last card still hides them completely
-    tl.fromTo(behind, { clipPath: full }, {
-      clipPath: function (k, el) {
-        return 'inset(0px 0px ' + (el.offsetHeight - sliverH - radius) + 'px 0px round ' + radius + 'px ' + radius + 'px 0px 0px)';
-      },
-      duration: 0.001,
-      immediateRender: false
-    }, 0)
-      .fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 0)
-      .fromTo(shape, { clipPath: full() }, {
-        clipPath: function () {
-          return 'inset(0px 0px ' + foldPx() + 'px 0px round ' + radius + 'px ' + radius + 'px ' + bottomR + 'px ' + bottomR + 'px)';
-        },
-        duration: 1,
-        immediateRender: false
-      }, 0);
+    tl.fromTo(fades, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 0)
+      .fromTo(shape, { '--fold': 0 }, { '--fold': 1, duration: 1, immediateRender: false }, 0);
+    stackTriggers.collapse = tl.scrollTrigger;
 
     if (withLabel && h3) {
       var peekSize = Math.max(14, sliverH * 0.62);
@@ -529,7 +556,7 @@
       if (!canScrub) { tl.progress(1); return; }
 
       var step = item.closest('.stack__step');
-      ScrollTrigger.create({
+      stackTriggers.builds[stackTriggers.builds.length] = ScrollTrigger.create({
         trigger: step,
         start: function () { return 'top top+=' + parseFloat(getComputedStyle(item).top); },
         // re-read on every refresh: --hold changes between the desktop and phone layouts
@@ -541,6 +568,116 @@
         // suppressed: the proxies land on the right value but nothing repaints from them
         onRefresh: function () { painters.forEach(function (fn) { fn(); }); }
       });
+    });
+  }
+
+  /* ---------- over the pinned cards the nav bar becomes a pair of floating buttons (CSS:
+     .nav--over-stack), so it never covers the titles stacked at the top ---------- */
+  function setupNavOverStack() {
+    var nav = document.querySelector('[data-nav]');
+    var stack = document.querySelector('.stack');
+    if (!nav || !stack || !hasGSAP || typeof ScrollTrigger === 'undefined') return;
+    ScrollTrigger.create({
+      trigger: stack,
+      start: function () { return 'top top+=' + nav.offsetHeight; },
+      end: function () { return 'bottom top+=' + nav.offsetHeight; },
+      toggleClass: { targets: nav, className: 'nav--over-stack' }
+    });
+  }
+
+  /* ---------- the cards never rest half-way through an animation: when a scroll gesture the visitor
+     started ends inside the stack, Lenis eases on to a resting point. Resting points: the first
+     card locking in, each card fully built, and the last card folded away. One gesture moves one
+     stage (a card built, the next card built...) in the direction of travel; a gesture that
+     overshoots the resting point it was heading for by a little comes back to it, so a card is
+     never skipped past before its text has been seen. Leaving the stack is never held back. ---------- */
+  function setupStackSnap() {
+    if (!stackTriggers.builds.length) return;
+    var SETTLE_MS = 160;
+    var AT = 12;   // px: this close to a resting point counts as resting on it
+    var MIN = 24;  // px: a gesture shorter than this stays where it started
+    var timer = null, touching = false, dragging = false, user = false, quietY = window.scrollY, glideId = 0;
+
+    function rests() {
+      var r = [stackTriggers.builds[0].start];
+      stackTriggers.builds.forEach(function (t) { r.push(t.end); });
+      if (stackTriggers.collapse) r.push(stackTriggers.collapse.end);
+      return r;
+    }
+    function easeInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function lastAtOrBefore(r, v) { var k = -1; for (var i = 0; i < r.length; i++) if (r[i] <= v) k = i; return k; }
+
+    // where a gesture from y0 that ended at y1 should come to rest, or null to leave it alone
+    function target(y0, y1) {
+      var d = y1 >= y0 ? 1 : -1;
+      var r = rests();
+      if (d < 0) r = r.map(function (v) { return -v; }).reverse(); // scrolling up = scrolling down on a mirrored axis
+      var a = d * y0, b = d * y1, n = r.length;
+      if (b < r[0] - AT || b > r[n - 1] + AT) return null;       // outside the stack
+      var from = -1;
+      for (var i = 0; i < n; i++) if (Math.abs(a - r[i]) <= AT) from = i;
+      var ja = from >= 0 ? from : lastAtOrBefore(r, a);
+      var jb = lastAtOrBefore(r, b + AT);
+      var out;
+      if (from >= 0 && b - r[from] < MIN) out = r[from];
+      else if (jb <= ja) out = r[Math.min(n - 1, jb + 1)];       // still on the way to the next resting point
+      else if (jb >= n - 1) out = r[n - 1];
+      else out = (b - r[jb]) / (r[jb + 1] - r[jb]) > 0.4 ? r[jb + 1] : r[jb]; // passed one: land on it unless well beyond
+      return d * out;
+    }
+
+    // eases the page to `to` with plain window scrolling, so it needs nothing from Lenis (which just
+    // follows native scroll events); any new input from the visitor cancels it
+    function glide(to, ms) {
+      var from = window.scrollY, t0 = null, id = ++glideId;
+      requestAnimationFrame(function step(now) {
+        if (id !== glideId) return;
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / ms);
+        window.scrollTo({ top: from + (to - from) * easeInOut(p), behavior: 'instant' });
+        if (p < 1) requestAnimationFrame(step);
+      });
+    }
+
+    // quietY: where the page last sat still. The browser may already have applied the first wheel
+    // notch by the time the wheel event reaches us, so scrollY at that moment is not a reliable
+    // start for the gesture
+    function settle() {
+      timer = null;
+      if (touching || dragging) return;
+      if (lenis && lenis.isScrolling === 'smooth') { schedule(); return; } // wheel easing still running
+      var y = window.scrollY, from = quietY;
+      quietY = y;
+      if (!user) return;
+      user = false;
+      if (Math.abs(y - from) < 2) return; // a tap, not a scroll
+      var to = target(from, y);
+      if (to == null || Math.abs(to - y) < 1) return;
+      glide(to, Math.min(1600, Math.max(600, Math.abs(to - y) / 1.2)));
+    }
+    function schedule() { clearTimeout(timer); timer = setTimeout(settle, SETTLE_MS); }
+    function begin() {
+      if (document.body.classList.contains('menu-open')) return;
+      glideId++;
+      user = true;
+    }
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    // only scrolls the visitor drives snap; menu and anchor links scroll programmatically
+    window.addEventListener('wheel', begin, { passive: true });
+    window.addEventListener('touchstart', function () { touching = true; begin(); }, { passive: true });
+    ['touchend', 'touchcancel'].forEach(function (type) {
+      window.addEventListener(type, function () { touching = false; schedule(); }, { passive: true });
+    });
+    window.addEventListener('keydown', function (e) {
+      if (/^(ArrowUp|ArrowDown|PageUp|PageDown| )$/.test(e.key)) begin();
+    });
+    // dragging the scrollbar: wait for the release
+    window.addEventListener('pointerdown', function (e) {
+      if (e.target === document.documentElement) { dragging = true; begin(); }
+    });
+    window.addEventListener('pointerup', function () {
+      if (dragging) { dragging = false; schedule(); }
     });
   }
 
