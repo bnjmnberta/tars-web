@@ -951,7 +951,7 @@
 
     var mm = gsap.matchMedia();
 
-    mm.add('(min-width: 901px) and (min-height: 620px)', function () {
+    mm.add('(min-width: 701px) and (min-height: 620px)', function () {
       var tl = gsap.timeline({
         defaults: { immediateRender: true },
         scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: true, invalidateOnRefresh: true }
@@ -964,7 +964,7 @@
       tl.to({}, { duration: 0.5 }); // everything in place for a moment before the section leaves
     });
 
-    mm.add('(max-width: 900px), (max-height: 619px)', function () {
+    mm.add('(max-width: 700px), (max-height: 619px)', function () {
       gsap.fromTo(fill, { scaleY: 0 }, {
         scaleY: 1, ease: 'none',
         scrollTrigger: { trigger: rail, start: 'top 65%', end: 'bottom 65%', scrub: true }

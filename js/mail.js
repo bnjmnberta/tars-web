@@ -1,12 +1,19 @@
 (function () {
   'use strict';
 
-  /* Mail composer: the page has no server, so it writes the mail with the visitor and hands it to
-     their own mail program (mailto:), to Gmail on the web, or to the clipboard. */
+  /* Mail composer under the contact buttons. "Enviar mail" sends the message straight to TARS
+     through the form's endpoint (data-mode: "wp" = the theme's own WordPress handler, "formsubmit" =
+     the formsubmit.co service for the static site). The visitor can also open the finished mail in
+     their own mail program (mailto:), in Gmail on the web, or copy it. */
   var form = document.getElementById('mailform');
   if (!form) return;
 
   var TO = form.getAttribute('data-to');
+  var ENDPOINT = form.getAttribute('data-endpoint');
+  var MODE = form.getAttribute('data-mode');
+  var NONCE = form.getAttribute('data-nonce');
+  var sending = false;
+  var silentReset = false;
   var DRAFT_KEY = 'tars-mail-draft';
   var MAILTO_SAFE_LENGTH = 1900; // some mail programs drop longer mailto: links
 
@@ -49,7 +56,7 @@
     try {
       var data = {};
       [].slice.call(form.elements).forEach(function (el) {
-        if (!el.name) return;
+        if (!el.name || el.name === 'website') return;
         if (el.type === 'checkbox') { if (el.checked) (data[el.name] = data[el.name] || []).push(el.value); }
         else data[el.name] = el.value;
       });
@@ -83,13 +90,21 @@
     if (msg) msg.hidden = !on;
   }
 
-  function validate() {
+  function validate(forSend) {
     var firstBad = null;
     ['name', 'message'].forEach(function (n) {
       var bad = !value(n);
       showError(n, bad);
       if (bad && !firstBad) firstBad = field(n);
     });
+    var badEmail = !!value('email') && !field('email').validity.valid;
+    showError('email', badEmail);
+    if (badEmail && !firstBad) firstBad = field('email');
+    // to answer a message that arrives on its own we need some way to reach the sender
+    var noContact = !!forSend && !value('email') && !value('phone');
+    var contactMsg = document.getElementById('e-contact');
+    if (contactMsg) contactMsg.hidden = !noContact;
+    if (noContact && !firstBad) firstBad = field('email');
     if (firstBad) { firstBad.focus(); say('Falta completar los campos marcados.'); return false; }
     return true;
   }
@@ -125,7 +140,83 @@
     return legacy();
   }
 
+  /* ---------- direct sending ---------- */
+  function setSending(on) {
+    sending = on;
+    var btn = form.querySelector('[data-act="send"]');
+    btn.disabled = on;
+    btn.setAttribute('aria-busy', on ? 'true' : 'false');
+    btn.querySelector('[data-send-label]').textContent = on ? 'Enviando…' : 'Enviar mail';
+  }
+
+  function request() {
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
+    var init = { method: 'POST', signal: ctrl ? ctrl.signal : undefined };
+    if (MODE === 'wp') {
+      var fd = new FormData();
+      fd.append('action', 'tars_send_mail');
+      fd.append('nonce', NONCE);
+      ['name', 'company', 'email', 'phone', 'when', 'links', 'message', 'website'].forEach(function (n) { fd.append(n, field(n).value); });
+      fd.append('subject', subject());
+      chosenServices().forEach(function (v) { fd.append('services[]', v); });
+      init.body = fd;
+      init.credentials = 'same-origin';
+    } else {
+      init.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      init.body = JSON.stringify({
+        name: value('name'),
+        email: value('email'),
+        _subject: subject(),
+        message: body(),
+        _template: 'box',
+        _captcha: 'false',
+        _honey: field('website').value
+      });
+    }
+    return fetch(ENDPOINT, init).then(function (res) {
+      clearTimeout(timer);
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        var ok = res.ok && (data.success === true || data.success === 'true');
+        if (!ok) { var err = new Error((data.data && data.data.message) || data.message || 'send failed'); err.status = res.status; throw err; }
+      });
+    }, function (e) { clearTimeout(timer); throw e; });
+  }
+
+  var thanks = document.getElementById('mail-thanks');
+
+  function showThanks(on) {
+    form.hidden = on;
+    thanks.hidden = !on;
+    if (on) thanks.focus();
+  }
+
+  function send() {
+    if (sending) return;
+    if (field('website').value) { showThanks(true); return; } // a bot filled the hidden field: pretend it worked
+    setSending(true);
+    say('');
+    request().then(function () {
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
+      silentReset = true;
+      form.reset();
+      showError('name', false); showError('message', false); showError('email', false);
+      setSending(false);
+      showThanks(true);
+    }, function (e) {
+      setSending(false);
+      if (window.console) console.warn('TARS mail:', e && e.message);
+      say(e && e.status === 429
+        ? 'Mandaste varios mensajes seguidos. Probá de nuevo en unos minutos.'
+        : 'No pudimos enviarlo. Probá de nuevo, o abrilo en tu correo con los botones de abajo.');
+    });
+  }
+
+  var again = document.querySelector('[data-again]');
+  if (again) again.addEventListener('click', function () { showThanks(false); field('name').focus(); });
+
   var actions = {
+    send: send,
     mailto: function () {
       var url = mailtoUrl();
       if (url.length > MAILTO_SAFE_LENGTH) say('Tu mensaje es largo: si no se abre tu correo, usá Gmail o copiá el mensaje.');
@@ -147,13 +238,18 @@
 
   [].slice.call(document.querySelectorAll('[data-act]')).forEach(function (btn) {
     btn.addEventListener('click', function () {
-      if (validate()) actions[btn.getAttribute('data-act')]();
+      var act = btn.getAttribute('data-act');
+      if (validate(act === 'send')) actions[act]();
     });
   });
 
   form.addEventListener('input', function (e) {
     if (e.target.name === 'name' || e.target.name === 'message') {
       if (value(e.target.name)) showError(e.target.name, false);
+    }
+    if (e.target.name === 'email' || e.target.name === 'phone') {
+      var c = document.getElementById('e-contact');
+      if (c && (value('email') || value('phone'))) c.hidden = true;
     }
     render();
   });
@@ -166,7 +262,8 @@
       showError('message', false);
       try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
       render();
-      say('Listo, empezaste de cero.');
+      if (!silentReset) say('Listo, empezaste de cero.');
+      silentReset = false;
     }, 0);
   });
 

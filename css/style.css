@@ -848,7 +848,7 @@ body.menu-open .nav.nav--over-stack{pointer-events:auto;}
 }
 /* the stage sticks just under the nav at its own height (not a centred 100vh box, which left
    a screen-sized gap after the cards) */
-@media (min-width:901px) and (min-height:620px){
+@media (min-width:701px) and (min-height:620px){
   .process{height:420vh;}
   .process__grid{
     position:sticky;
@@ -932,8 +932,13 @@ body.menu-open .nav.nav--over-stack{pointer-events:auto;}
 @media (min-width:701px) and (max-width:1023px){
   .stack__shape{column-gap:var(--space-4);padding:var(--space-4) var(--space-3);}
 }
-@media (max-width:900px){
+@media (max-width:700px){
   .process__grid{grid-template-columns:minmax(0,1fr);gap:var(--space-4);}
+}
+@media (min-width:701px) and (max-width:1023px){
+  .process__grid{gap:var(--space-3);}
+  .process__step{column-gap:var(--space-3);}
+  .process__track{--node:clamp(56px,9vh,84px);}
 }
 @media (max-width:600px){
   .process{border-radius:18px 18px 0 0;}
@@ -1078,10 +1083,23 @@ button.btn{cursor:pointer;}
 }
 .mailform__reset:hover{color:var(--c-maroon);}
 
-.mailactions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2);}
-.mailactions .btn{flex:1 1 220px;justify-content:space-between;}
-.cta .mailactions .btn--primary{background:var(--c-black);color:var(--c-white);}
-.cta .mailactions .btn--primary:hover,.cta .mailactions .btn--primary:focus-visible{background:var(--c-green);border-color:var(--c-green);color:var(--c-black);}
+.mailactions{margin-top:var(--space-2);}
+.mailsend{width:100%;justify-content:space-between;padding:1.25rem 1.75rem;font-size:1.05rem;}
+.cta .mailsend{background:var(--c-black);color:var(--c-white);}
+.cta .mailsend:hover,.cta .mailsend:focus-visible{background:var(--c-green);border-color:var(--c-green);color:var(--c-black);}
+.mailsend:disabled{opacity:.6;cursor:progress;transform:none;}
+.mailalt{display:grid;gap:var(--space-1);}
+.mailalt p{margin:0;font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(10,10,10,.7);}
+.mailalt__btns{display:flex;flex-wrap:wrap;gap:var(--space-1);}
+.btn--small{padding:.65rem 1rem;font-size:.78rem;}
+.field__hint--row{margin:calc(var(--space-2) * -1) 0 0;}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+.mailthanks{display:grid;gap:var(--space-2);justify-items:start;padding:var(--space-4);border:2px solid var(--c-black);background:var(--c-green);}
+.mailform[hidden],.mailthanks[hidden]{display:none;}
+.mailthanks:focus{outline:none;}
+.mailthanks h3{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,5vw,3.4rem);line-height:.95;margin:0;}
+.mailthanks p{margin:0;font-size:1.1rem;max-width:44ch;}
+.mailthanks .btn{margin-top:var(--space-1);}
 .mailstatus{min-height:1.5em;margin:0;font-family:var(--font-mono);font-weight:700;font-size:.85rem;}
 .mailfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);}
 .mailfoot p{margin:0;font-size:.95rem;}

@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/style.css?v=20261016">
+<link rel="stylesheet" href="css/style.css?v=20261019">
 <noscript><style>.loader{display:none}[data-reveal]{opacity:1;transform:none}.hero__bgline i{transform:none}</style></noscript>
 </head>
 <body>
@@ -368,7 +368,7 @@
             <p class="mailbox__lead">Completá lo que puedas y, cuando esté listo, lo abrís en tu correo o en Gmail con todo cargado.</p>
           </header>
 
-            <form class="mailform" id="mailform" data-to="tarssolucionesdigitales@gmail.com" novalidate>
+            <form class="mailform" id="mailform" data-to="tarssolucionesdigitales@gmail.com" data-mode="formsubmit" data-endpoint="https://formsubmit.co/ajax/tarssolucionesdigitales@gmail.com" novalidate>
 
               <fieldset class="field">
                 <legend>¿Qué necesitás?</legend>
@@ -397,13 +397,16 @@
               <div class="field-row">
                 <div class="field">
                   <label for="f-email">Tu mail</label>
-                  <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email">
+                  <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="e-email">
+                  <p class="field__error" id="e-email" hidden>Revisá el mail: parece incompleto.</p>
                 </div>
                 <div class="field">
                   <label for="f-phone">WhatsApp o teléfono</label>
                   <input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
                 </div>
               </div>
+              <p class="field__hint field__hint--row">Dejanos al menos un mail o un WhatsApp para poder responderte.</p>
+              <p class="field__error" id="e-contact" hidden>Completá tu mail o tu WhatsApp para poder responderte.</p>
 
               <div class="field">
                 <label for="f-subject">Título del mail</label>
@@ -435,17 +438,31 @@
                 </div>
               </div>
 
+              <div class="hp" aria-hidden="true"><label>No completar este campo<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
               <div class="mailactions">
-                <button type="button" class="btn btn--primary" data-act="mailto"><span>Abrir en mi correo</span> <span aria-hidden="true">→</span></button>
-                <button type="button" class="btn" data-act="gmail"><span>Abrir en Gmail</span> <span aria-hidden="true">↗</span></button>
-                <button type="button" class="btn" data-act="copy"><span>Copiar mensaje</span></button>
+                <button type="button" class="btn btn--primary mailsend" data-act="send"><span data-send-label>Enviar mail</span> <span aria-hidden="true">→</span></button>
               </div>
               <p class="mailstatus" role="status" aria-live="polite" data-status></p>
+              <div class="mailalt">
+                <p>¿Preferís mandarlo vos desde tu correo?</p>
+                <div class="mailalt__btns">
+                  <button type="button" class="btn btn--small" data-act="mailto"><span>Abrir en mi correo</span></button>
+                  <button type="button" class="btn btn--small" data-act="gmail"><span>Abrir en Gmail</span> <span aria-hidden="true">↗</span></button>
+                  <button type="button" class="btn btn--small" data-act="copy"><span>Copiar mensaje</span></button>
+                </div>
+              </div>
               <div class="mailfoot">
                 <p>¿Preferís hablar? Escribinos por <a href="https://wa.me/5493425226537?text=Hola%20TARS%2C%20quiero%20info" target="_blank" rel="noopener">WhatsApp</a>.</p>
                 <button type="reset" class="mailform__reset">Borrar todo</button>
               </div>
             </form>
+
+            <div class="mailthanks" id="mail-thanks" tabindex="-1" hidden>
+              <h3>¡Mail enviado!</h3>
+              <p>Recibimos tu mensaje. Te respondemos por mail o por WhatsApp lo antes posible.</p>
+              <button type="button" class="btn" data-again>Escribir otro</button>
+            </div>
         </div>
       </div>
     </div>
@@ -479,9 +496,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
-<script src="js/loader.js?v=20261016"></script>
+<script src="js/loader.js?v=20261019"></script>
 <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
-<script src="js/main.js?v=20261016"></script>
-<script src="js/mail.js?v=20261016"></script>
+<script src="js/main.js?v=20261019"></script>
+<script src="js/mail.js?v=20261019"></script>
 </body>
 </html>
