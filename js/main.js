@@ -571,8 +571,8 @@
     });
   }
 
-  /* ---------- over the pinned cards the nav bar becomes a pair of floating buttons (CSS:
-     .nav--over-stack), so it never covers the titles stacked at the top ---------- */
+  /* ---------- marks the nav bar while the pinned cards are on screen (CSS .nav--over-stack): with the
+     bar showing, the pile of cards slides down below it so their titles stay readable ---------- */
   function setupNavOverStack() {
     var nav = document.querySelector('[data-nav]');
     var stack = document.querySelector('.stack');
@@ -690,7 +690,7 @@
   var WRITE_BOTTOM = 0.18;   // under the last baseline: commas and the tail of Q
   var WRITE_TRACK = -0.01;   // sans tracking, em
   var WRITE_PEN = 5;         // letters being written at the same time
-  var WRITE_SCALE = 0.8;     // copy set at 80% of the size that would fill its box — the title leads
+  var WRITE_SCALE = 0.94;    // copy set at 94% of the size that would fill its box — still under the title
   var writeFonts = null;
 
   /* each card title is as big as its column allows unless its longest word wouldn't fit on one

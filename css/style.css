@@ -266,16 +266,12 @@ body.menu-open .nav{background:transparent;backdrop-filter:none;border-bottom-co
 body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .nav{z-index:1100;}
 
-/* While the cards are pinned, the bar shrinks to its two buttons floating on the right: scrolling
-   up no longer lays a full-width bar over the pile of card titles at the top of the screen. */
-.nav.nav--over-stack{background:transparent;backdrop-filter:none;border-bottom-color:transparent;pointer-events:none;}
-.nav--over-stack .nav__logo{display:none;}
-.nav--over-stack .btn--nav,.nav--over-stack .nav__menu{pointer-events:auto;background:var(--c-black);}
-.nav--over-stack .btn--nav:hover,.nav--over-stack .btn--nav:focus-visible{background:var(--c-white);}
-.nav--over-stack .nav__menu:hover{background:var(--c-white);}
-@media (max-width:600px){.nav--over-stack .btn--nav{display:none;}.nav--over-stack .nav__menu{margin-left:auto;}}
-body.menu-open .nav.nav--over-stack .nav__logo{display:flex;}
-body.menu-open .nav.nav--over-stack{pointer-events:auto;}
+/* While the cards are pinned and the full bar is showing (scrolling up), the pile of cards slides
+   down by the bar's height so the titles stacked at the top stay readable instead of hiding behind it.
+   main.js (setupNavOverStack) marks the bar while the pinned cards are on screen. */
+.stack__item{transition:transform var(--dur-med) var(--ease-brutal);}
+.nav.nav--over-stack:not(.nav--hidden) ~ main .stack__item{transform:translateY(var(--nav-h));}
+@media (prefers-reduced-motion: reduce){.stack__item{transition:none;}}
 
 /* ---- full-screen menu: black sheet wipes down, giant links rise out of masks,
    each row floods with a service colour on hover (pure CSS — no JS animation needed) ---- */
@@ -1203,18 +1199,20 @@ button.btn{cursor:pointer;}
 }
 
 /* phones: one column — copy on top, drawing underneath; both rows get a definite share of the
-   card so the written paragraph can size itself to fill its box */
+   card so the written paragraph can size itself to fill its box. The copy gets the larger share:
+   the paragraph is as big as the room under the title lets it be */
 /* phones only: on tablets the two-column card (copy | drawing) keeps the written paragraph at a
    readable size — stacked, its short top row shrank the copy to ~9px at 768px */
 @media (max-width:700px){
   .stack__shape{
     grid-template-columns:minmax(0,1fr);
-    grid-template-rows:minmax(0,1.25fr) minmax(90px,1fr);
+    grid-template-rows:minmax(0,2.2fr) minmax(76px,1fr);
     row-gap:var(--space-3);
   }
   .stack__inner{grid-column:1;grid-row:1;}
   .stack__art{grid-column:1;grid-row:2;}
   .stack__expand{margin-top:var(--space-2);}
+  .stack__cta{margin-top:var(--space-2);}
   .stack__why{font-size:clamp(1.2rem,4.2vw,2.2rem);}
 }
 
