@@ -37,7 +37,11 @@
 
   --radius-0:0px;
   --nav-h:76px;
+  /* the card stack is sized to the viewport that is visible with the browser bars showing (svh), so
+     on phones a card never runs under the bottom bar */
+  --vh:100vh;
 }
+@supports (height:100svh){:root{--vh:100svh;}}
 
 @font-face{font-family:'Mona Sans';src:url('../assets/fonts/MonaSans-Bold.woff') format('woff');font-weight:700;font-display:swap;}
 @font-face{font-family:'Cormorant Garamond';src:url('../assets/fonts/CormorantGaramond-Bold.woff') format('woff');font-weight:700;font-display:swap;}
@@ -51,6 +55,7 @@ html.lenis,html.lenis body{height:auto;}
   html{scroll-behavior:auto;}
 }
 
+html{background:var(--c-black);}
 body{
   margin:0;
   background:var(--c-black);
@@ -268,9 +273,12 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 
 /* While the cards are pinned and the full bar is showing (scrolling up), the pile of cards slides
    down by the bar's height so the titles stacked at the top stay readable instead of hiding behind it.
-   main.js (setupNavOverStack) marks the bar while the pinned cards are on screen. */
+   main.js (setupNavOverStack) marks the bar while the pinned cards are on screen. Phones skip it: their
+   strips carry no titles, and the shift would push the bottom of the card off screen. */
 .stack__item{transition:transform var(--dur-med) var(--ease-brutal);}
-.nav.nav--over-stack:not(.nav--hidden) ~ main .stack__item{transform:translateY(var(--nav-h));}
+@media (min-width:701px){
+  .nav.nav--over-stack:not(.nav--hidden) ~ main .stack__item{transform:translateY(var(--nav-h));}
+}
 @media (prefers-reduced-motion: reduce){.stack__item{transition:none;}}
 
 /* ---- full-screen menu: black sheet wipes down, giant links rise out of masks,
@@ -637,7 +645,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
    amount to every step's offset AND size keeps the simultaneous-release math intact. */
 .stack{
   --hold:560px;
-  --step:calc(100vh - var(--nav-h) - 32px + var(--hold));
+  --step:calc(var(--vh) - var(--nav-h) - 32px + var(--hold));
   /* cards pin from near the very top: the nav hides itself while scrolling down, so its strip
      is used for card instead of being left empty */
   --top0:var(--space-2);
@@ -651,9 +659,9 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
      strips exactly as they release. Sized so that section's top sits right at the last card's
      bottom edge when that card starts folding (main.js), and then rides up with it */
   /* (derived from the step geometry; stays exact when --off-max / --top0 / --gap-b change) */
-  --tail:calc(100vh - var(--hold) * .1 + var(--nav-h) - 64px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
+  --tail:calc(var(--vh) - var(--hold) * .1 + var(--nav-h) - 64px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
   position:relative;height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding:0 var(--space-3);
-  margin-bottom:calc(var(--top0) - 100vh);
+  margin-bottom:calc(var(--top0) - var(--vh));
 }
 .stack__step{position:absolute;left:var(--space-3);right:var(--space-3);}
 .stack__step:nth-child(1){top:0;height:calc(var(--step) * 5 + var(--end) + var(--off));}
@@ -685,7 +693,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
   position:relative;
   /* every card the same height: whatever fits under the LAST card's pinned spot, so each one is
      seen whole while it's on top (the earlier ones end higher and the next card covers them) */
-  height:calc(100vh - var(--top0) - var(--off-max) - var(--gap-b));
+  height:calc(var(--vh) - var(--top0) - var(--off-max) - var(--gap-b));
   padding:var(--space-5) var(--space-4);
   overflow:hidden;
   border-radius:35px;
@@ -801,6 +809,11 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
 .stack__item--cyan h3{--longest:4.3;}    /* DISEÑO */
 .stack__title-in{display:block;}
 .stack__cta{margin-top:var(--space-4);flex-shrink:0;}
+/* the call-to-action is a direct child of the card (not of the text column) so a phone can put it
+   under the drawing; on wide cards it still sits under the paragraph, in the left column */
+.stack__shape:has(> .stack__cta){grid-template-rows:minmax(0,1fr) auto;}
+.stack__shape:has(> .stack__cta) > .stack__art{grid-row:1 / span 2;}
+.stack__shape > .stack__cta{grid-column:1;grid-row:2;align-self:end;justify-self:start;}
 /* one-line title shown in the sliver once the next card covers this one (built by main.js) */
 .stack__peek{
   position:absolute;
@@ -1211,6 +1224,9 @@ button.btn{cursor:pointer;}
   }
   .stack__inner{grid-column:1;grid-row:1;}
   .stack__art{grid-column:1;grid-row:2;}
+  .stack__shape:has(> .stack__cta){grid-template-rows:minmax(0,2.2fr) minmax(76px,1fr) auto;}
+  .stack__shape:has(> .stack__cta) > .stack__art{grid-row:2;}
+  .stack__shape > .stack__cta{grid-column:1;grid-row:3;margin-top:0;}
   .stack__expand{margin-top:var(--space-2);}
   .stack__cta{margin-top:var(--space-2);}
   .stack__why{font-size:clamp(1.2rem,4.2vw,2.2rem);}
@@ -1220,12 +1236,12 @@ button.btn{cursor:pointer;}
   :root{--nav-h:64px;}
   .stack{
     --hold:440px;
-    --step:calc(100vh - var(--nav-h) - 24px + var(--hold));
+    --step:calc(var(--vh) - var(--nav-h) - 24px + var(--hold));
     --top0:var(--space-1);
-    --gap-b:var(--space-1);
+    --gap-b:var(--space-2);
     --off-max:88px;
     --end:calc(118px + var(--tail));
-    --tail:calc(100vh - var(--hold) * .1 + var(--nav-h) - 74px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
+    --tail:calc(var(--vh) - var(--hold) * .1 + var(--nav-h) - 74px - 2 * (var(--off-max) + var(--top0) + var(--gap-b)));
     height:calc(var(--step) * 5 + var(--end) + var(--off-max) + var(--gap-b));padding-left:var(--space-1);padding-right:var(--space-1);
   }
   .stack__step{left:var(--space-1);right:var(--space-1);}
