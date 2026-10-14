@@ -636,7 +636,7 @@ body.menu-open .btn--nav{opacity:0;pointer-events:none;}
    building its drawing and copy, before the next one starts sliding over it. Adding the same
    amount to every step's offset AND size keeps the simultaneous-release math intact. */
 .stack{
-  --hold:900px;
+  --hold:560px;
   --step:calc(100vh - var(--nav-h) - 32px + var(--hold));
   /* cards pin from near the very top: the nav hides itself while scrolling down, so its strip
      is used for card instead of being left empty */
@@ -1219,7 +1219,7 @@ button.btn{cursor:pointer;}
 @media (max-width:600px){
   :root{--nav-h:64px;}
   .stack{
-    --hold:700px;
+    --hold:440px;
     --step:calc(100vh - var(--nav-h) - 24px + var(--hold));
     --top0:var(--space-1);
     --gap-b:var(--space-1);

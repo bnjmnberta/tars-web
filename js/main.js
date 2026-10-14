@@ -25,6 +25,7 @@
       scrollBeforeRefresh = 0;
     });
   }
+  var STACK_WHEEL = 2;        // wheel speed over the cards, relative to the rest of the page (1)
   var stackTriggers = { builds: [], collapse: null }; // filled by setupStackBuild/Collapse, read by setupStackSnap
   // assets resolve against this script's own folder, so the same file works on the static page
   // (js/main.js next to assets/) and inside the WordPress theme
@@ -581,7 +582,10 @@
       trigger: stack,
       start: function () { return 'top top+=' + nav.offsetHeight; },
       end: function () { return 'bottom top+=' + nav.offsetHeight; },
-      toggleClass: { targets: nav, className: 'nav--over-stack' }
+      toggleClass: { targets: nav, className: 'nav--over-stack' },
+      // the cards travel faster than the rest of the page: each wheel notch moves further while
+      // they are on screen
+      onToggle: function (self) { if (lenis) lenis.options.wheelMultiplier = self.isActive ? STACK_WHEEL : 1; }
     });
   }
 
@@ -653,7 +657,7 @@
       if (Math.abs(y - from) < 2) return; // a tap, not a scroll
       var to = target(from, y);
       if (to == null || Math.abs(to - y) < 1) return;
-      glide(to, Math.min(1600, Math.max(600, Math.abs(to - y) / 1.2)));
+      glide(to, Math.min(1000, Math.max(420, Math.abs(to - y) / 2.2)));
     }
     function schedule() { clearTimeout(timer); timer = setTimeout(settle, SETTLE_MS); }
     function begin() {
