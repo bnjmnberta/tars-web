@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="90 95 900 900">
+  <style>
+    .b{fill:#0a0a0a;stroke:#f6f6f1;stroke-width:34;stroke-linejoin:miter}
+    .s{fill:#f6f6f1;stroke:#f6f6f1;stroke-width:34;stroke-linejoin:miter}
+    .d{fill:#f6f6f1}
+    @media (prefers-color-scheme: light){
+      .b{fill:#f6f6f1;stroke:#0a0a0a}
+      .s{fill:#0a0a0a;stroke:#0a0a0a}
+      .d{fill:#0a0a0a}
+    }
+  </style>
+  <path class="b" d="M241.5,165.3 L390,123 L593.1,813.8 L440.8,857.1 Z"/>
+  <circle class="d" cx="323.1" cy="307.2" r="26"/>
+  <path class="s" d="M776.4,235.7 L912.5,311.8 L532.3,973.8 L396.2,897 Z"/>
+  <path class="b" d="M445.3,161.6 L598.9,116.4 L820.7,859.6 L666.9,904.9 Z"/>
+  <path class="b" d="M552.6,144 L684.6,217.2 L298.5,906.8 L167.5,834.6 Z"/>
+</svg>
