@@ -20,6 +20,11 @@
   var status = document.querySelector('[data-status]');
   var statusTimer = null;
 
+  // tells js/analytics.js (or anything else listening) what the visitor did
+  function announce(estado, extra) {
+    try { document.dispatchEvent(new CustomEvent('tars:mail', { detail: Object.assign({ estado: estado }, extra || {}) })); } catch (e) { /* old browser */ }
+  }
+
   function field(name) { return form.elements[name]; }
   function value(name) { return (field(name).value || '').trim(); }
   function chosenServices() {
@@ -159,6 +164,8 @@
       fd.append('nonce', NONCE);
       ['name', 'company', 'email', 'phone', 'when', 'links', 'message', 'website'].forEach(function (n) { fd.append(n, field(n).value); });
       fd.append('subject', subject());
+      var ts = form.querySelector('[name="cf-turnstile-response"]'); // Cloudflare Turnstile, when the theme has it on
+      if (ts) fd.append('cf-turnstile-response', ts.value);
       chosenServices().forEach(function (v) { fd.append('services[]', v); });
       init.body = fd;
       init.credentials = 'same-origin';
@@ -196,15 +203,20 @@
     if (field('website').value) { showThanks(true); return; } // a bot filled the hidden field: pretend it worked
     setSending(true);
     say('');
+    var sentServices = chosenServices().join(', '); // the form is cleared on success
     request().then(function () {
       try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
       silentReset = true;
       form.reset();
       showError('name', false); showError('message', false); showError('email', false);
       setSending(false);
+      if (window.turnstile) window.turnstile.reset();
       showThanks(true);
+      announce('enviado', { servicios: sentServices });
     }, function (e) {
       setSending(false);
+      if (window.turnstile) window.turnstile.reset();
+      announce('error');
       if (window.console) console.warn('TARS mail:', e && e.message);
       say(e && e.status === 429
         ? 'Mandaste varios mensajes seguidos. Probá de nuevo en unos minutos.'
@@ -218,16 +230,19 @@
   var actions = {
     send: send,
     mailto: function () {
+      announce('mailto');
       var url = mailtoUrl();
       if (url.length > MAILTO_SAFE_LENGTH) say('Tu mensaje es largo: si no se abre tu correo, usá Gmail o copiá el mensaje.');
       else say('Abriendo tu programa de correo…');
       window.location.href = url;
     },
     gmail: function () {
+      announce('gmail');
       var w = window.open(gmailUrl(), '_blank', 'noopener');
       say(w ? 'Abriendo Gmail en otra pestaña…' : 'Tu navegador bloqueó la ventana. Permitila o usá “Copiar mensaje”.');
     },
     copy: function () {
+      announce('copiar');
       var text = 'Para: ' + TO + '\nAsunto: ' + subject() + '\n\n' + body();
       copyText(text).then(
         function () { say('Mensaje copiado. Pegalo en tu mail y mandalo a ' + TO + '.'); },
