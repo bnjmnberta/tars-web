@@ -12,6 +12,41 @@
   if (!/^G-[A-Z0-9]{6,}$/i.test(id)) return;
   if (navigator.doNotTrack === '1' || window.doNotTrack === '1') return;
 
+  /* Consent: nothing is measured until the visitor accepts the notice. The answer is kept in this
+     browser (localStorage "tars-consent"), so the notice shows once. */
+  var KEY = 'tars-consent';
+  function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function remember(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+  function banner() {
+    /* the static site keeps its policy at privacidad/; WordPress sets window.TARS_PRIVACY_URL
+       (an empty string means "no policy page yet": the notice then has no link) */
+    var url = typeof window.TARS_PRIVACY_URL === 'string' ? window.TARS_PRIVACY_URL : 'privacidad/';
+    var box = document.createElement('div');
+    box.className = 'consent';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Aviso de cookies');
+    box.innerHTML =
+      '<p class="consent__text">Usamos Google Analytics para saber cuántas personas visitan el sitio y qué secciones leen. ' +
+      'Solo se activa si aceptás.' + (url ? ' <a href="' + url.replace(/"/g, '&quot;') + '">Política de privacidad</a>' : '') + '</p>' +
+      '<div class="consent__btns">' +
+      '<button type="button" class="consent__btn" data-consent="denied">Rechazar</button>' +
+      '<button type="button" class="consent__btn consent__btn--yes" data-consent="granted">Aceptar</button>' +
+      '</div>';
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-consent]');
+      if (!b) return;
+      var v = b.getAttribute('data-consent');
+      remember(v);
+      box.remove();
+      if (v === 'granted') start();
+    });
+    document.body.appendChild(box);
+  }
+  var answer = stored();
+  if (answer === 'granted') start();
+  else if (answer !== 'denied') banner();
+
+  function start() {
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
   window.gtag = window.gtag || gtag;
@@ -79,5 +114,6 @@
       var node = document.getElementById(name);
       if (node) io.observe(node);
     });
+  }
   }
 })();
