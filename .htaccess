@@ -1,6 +1,13 @@
 Options -Indexes
 ErrorDocument 404 /404.html
 
+# one address for the site: www.tarsestudio.com goes to tarsestudio.com
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^www\.tarsestudio\.com$ [NC]
+  RewriteRule ^(.*)$ https://tarsestudio.com/$1 [R=301,L]
+</IfModule>
+
 # The repository also holds source material the page does not use (mockups, original images and
 # videos, unused loops). Deploying the repo as-is would publish them, so they answer 404.
 RedirectMatch 404 ^/(Web.Img.y.vidos/|README\.md$|\.git|(flyersvideos|inm|logos|redes|web)\.png$|assets/(hero-loop|gif-loop|hero-bg)\.mp4$|assets/(hero-bg-poster\.jpg|logo-mark\.png)$)
