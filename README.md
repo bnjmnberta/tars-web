@@ -18,6 +18,7 @@ Publicado en [GitHub Pages](https://bnjmnberta.github.io/tars-web/) y en la Host
 | `css/style.css` | Estilos y aviso de cookies |
 | `js/main.js`, `js/loader.js` | Animaciones (GSAP, Lenis), pila de tarjetas, pantalla de carga |
 | `js/mail.js` | Formulario de Mail de la portada |
+| `contacto.php` | Recibe el formulario, aplica los límites y manda el correo |
 | `js/analytics.js` | Google Analytics 4, solo con consentimiento |
 | `privacidad/index.html` | Política de privacidad (borrador a revisar) |
 | `404.html`, `.htaccess` | Página de error, encabezados de seguridad, compresión y caché |
@@ -30,7 +31,9 @@ Publicado en [GitHub Pages](https://bnjmnberta.github.io/tars-web/) y en la Host
   `privacidad/`) usan `https://tarsestudio.com`. Si el dominio es otro, reemplazarlo en esos archivos.
 - **Google Analytics:** poner el código `G-...` en `<meta name="tars-ga">` de `index.html`. Vacío, no mide nada ni
   muestra el aviso de cookies.
-- **Formulario:** envía con FormSubmit; hay que activarlo una vez desde el mail de confirmación.
+- **Formulario:** lo recibe `contacto.php` en el propio hosting y lo manda por correo (`mail()`) a la casilla fijada
+  al principio de ese archivo. Cada mensaje también queda en `datos/mensajes.log`, carpeta que el servidor no publica
+  y que Git ignora. El correo sale de `noreply@tarsestudio.com`; el dominio necesita el registro SPF en sus DNS.
 - **`robots.txt` y `sitemap.xml`:** subirlos al hosting recién cuando el dominio apunte al sitio. El dominio temporal de
   Hostinger tiene su propio `robots.txt` que bloquea a Google.
 - **Cache:** al cambiar CSS o JS, subir el número `?v=` de `index.html`.

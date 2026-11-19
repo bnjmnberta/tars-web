@@ -10,7 +10,7 @@ ErrorDocument 404 /404.html
 
 # The repository also holds source material the page does not use (mockups, original images and
 # videos, unused loops). Deploying the repo as-is would publish them, so they answer 404.
-RedirectMatch 404 ^/(Web.Img.y.vidos/|README\.md$|\.git|(flyersvideos|inm|logos|redes|web)\.png$|assets/(hero-loop|gif-loop|hero-bg)\.mp4$|assets/(hero-bg-poster\.jpg|logo-mark\.png)$)
+RedirectMatch 404 ^/(datos/|Web.Img.y.vidos/|README\.md$|\.git|(flyersvideos|inm|logos|redes|web)\.png$|assets/(hero-loop|gif-loop|hero-bg)\.mp4$|assets/(hero-bg-poster\.jpg|logo-mark\.png)$)
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
@@ -22,7 +22,7 @@ RedirectMatch 404 ^/(Web.Img.y.vidos/|README\.md$|\.git|(flyersvideos|inm|logos|
   # Scripts only from this site, the three CDNs the page uses and Google Analytics (which loads
   # after the visitor accepts the cookie notice). Styles keep 'unsafe-inline' because the page
   # sets a few CSS variables in style="" attributes.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self'; connect-src 'self' https://formsubmit.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://formsubmit.co; object-src 'none'; upgrade-insecure-requests"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self'; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 </IfModule>
 
 <IfModule mod_deflate.c>

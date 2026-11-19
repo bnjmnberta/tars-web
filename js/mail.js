@@ -2,8 +2,8 @@
   'use strict';
 
   /* Mail composer under the contact buttons. "Enviar mail" sends the message straight to TARS
-     through the form's endpoint (data-mode: "wp" = the theme's own WordPress handler, "formsubmit" =
-     the formsubmit.co service for the static site). The visitor can also open the finished mail in
+     through the form's endpoint (data-mode: "wp" = the theme's own WordPress handler, "own" =
+     contacto.php of the static site, "formsubmit" = the formsubmit.co service). The visitor can also open the finished mail in
      their own mail program (mailto:), in Gmail on the web, or copy it. */
   var form = document.getElementById('mailform');
   if (!form) return;
@@ -169,6 +169,17 @@
       chosenServices().forEach(function (v) { fd.append('services[]', v); });
       init.body = fd;
       init.credentials = 'same-origin';
+    } else if (MODE === 'own') {
+      init.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      init.credentials = 'same-origin';
+      init.body = JSON.stringify({
+        name: value('name'),
+        email: value('email'),
+        phone: value('phone'),
+        _subject: subject(),
+        message: body(),
+        _honey: field('website').value
+      });
     } else {
       init.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
       init.body = JSON.stringify({
