@@ -1,6 +1,10 @@
 Options -Indexes
 ErrorDocument 404 /404.html
 
+# The repository also holds source material the page does not use (mockups, original images and
+# videos, unused loops). Deploying the repo as-is would publish them, so they answer 404.
+RedirectMatch 404 ^/(Web.Img.y.vidos/|README\.md$|\.git|(flyersvideos|inm|logos|redes|web)\.png$|assets/(hero-loop|gif-loop|hero-bg)\.mp4$|assets/(hero-bg-poster\.jpg|logo-mark\.png)$)
+
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
