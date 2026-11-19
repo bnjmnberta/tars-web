@@ -27,7 +27,7 @@ Publicado en [GitHub Pages](https://bnjmnberta.github.io/tars-web/) y en la Host
 ## Antes de lanzar con dominio propio
 
 - **Dominio:** las direcciones absolutas (`canonical`, Open Graph, datos estructurados, `sitemap.xml`, `robots.txt`,
-  `privacidad/`) usan `https://tarsestudio.com.ar`. Si el dominio es otro, reemplazarlo en esos archivos.
+  `privacidad/`) usan `https://tarsestudio.com`. Si el dominio es otro, reemplazarlo en esos archivos.
 - **Google Analytics:** poner el código `G-...` en `<meta name="tars-ga">` de `index.html`. Vacío, no mide nada ni
   muestra el aviso de cookies.
 - **Formulario:** envía con FormSubmit; hay que activarlo una vez desde el mail de confirmación.

@@ -25,13 +25,29 @@
     box.className = 'consent';
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-label', 'Aviso de cookies');
-    box.innerHTML =
-      '<p class="consent__text">Usamos Google Analytics para saber cuántas personas visitan el sitio y qué secciones leen. ' +
-      'Solo se activa si aceptás.' + (url ? ' <a href="' + url.replace(/"/g, '&quot;') + '">Política de privacidad</a>' : '') + '</p>' +
-      '<div class="consent__btns">' +
-      '<button type="button" class="consent__btn" data-consent="denied">Rechazar</button>' +
-      '<button type="button" class="consent__btn consent__btn--yes" data-consent="granted">Aceptar</button>' +
-      '</div>';
+    /* built with the DOM API (no innerHTML), and only http(s) or relative links are accepted */
+    var text = document.createElement('p');
+    text.className = 'consent__text';
+    text.appendChild(document.createTextNode('Usamos Google Analytics para saber cuántas personas visitan el sitio y qué secciones leen. Solo se activa si aceptás.'));
+    if (url && !/^\s*(javascript|data|vbscript):/i.test(url)) {
+      var link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.textContent = 'Política de privacidad';
+      text.appendChild(document.createTextNode(' '));
+      text.appendChild(link);
+    }
+    var btns = document.createElement('div');
+    btns.className = 'consent__btns';
+    [['denied', 'Rechazar', ''], ['granted', 'Aceptar', ' consent__btn--yes']].forEach(function (b) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'consent__btn' + b[2];
+      btn.setAttribute('data-consent', b[0]);
+      btn.textContent = b[1];
+      btns.appendChild(btn);
+    });
+    box.appendChild(text);
+    box.appendChild(btns);
     box.addEventListener('click', function (e) {
       var b = e.target.closest && e.target.closest('[data-consent]');
       if (!b) return;
