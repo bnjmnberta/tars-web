@@ -1303,3 +1303,9 @@ button.btn{cursor:pointer;}
 .consent__btn--yes:hover,.consent__btn--yes:focus-visible{background:var(--c-white);border-color:var(--c-white);}
 .footer__bottom a{color:inherit;text-underline-offset:3px;}
 .footer__bottom a:hover,.footer__bottom a:focus-visible{color:var(--c-green);}
+
+/* ---- data-protection notices (Ley 25.326, Disposición DNPDP 10/2008) ---- */
+.mailnote{display:grid;gap:.5rem;margin-top:var(--space-2);}
+.mailnote p{margin:0;font-size:.82rem;line-height:1.5;color:rgba(10,10,10,.72);}
+.mailnote a{color:inherit;text-underline-offset:3px;}
+.footer__legal{margin:var(--space-3) 0 0;max-width:62rem;font-size:.72rem;line-height:1.55;color:rgba(246,246,241,.55);}

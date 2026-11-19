@@ -28,7 +28,7 @@
     /* built with the DOM API (no innerHTML), and only http(s) or relative links are accepted */
     var text = document.createElement('p');
     text.className = 'consent__text';
-    text.appendChild(document.createTextNode('Usamos Google Analytics para saber cuántas personas visitan el sitio y qué secciones leen. Solo se activa si aceptás.'));
+    text.appendChild(document.createTextNode('Usamos Google Analytics para saber cuántas personas visitan el sitio y qué secciones leen. Solo se activa si aceptás. Al aceptar, Google procesa esos datos y puede hacerlo fuera de la Argentina, por ejemplo en Estados Unidos.'));
     if (url && !/^\s*(javascript|data|vbscript):/i.test(url)) {
       var link = document.createElement('a');
       link.setAttribute('href', url);
@@ -52,17 +52,53 @@
       var b = e.target.closest && e.target.closest('[data-consent]');
       if (!b) return;
       var v = b.getAttribute('data-consent');
+      var before = stored();
       remember(v);
       box.remove();
       if (v === 'granted') start();
+      else if (before === 'granted') stop();
     });
     document.body.appendChild(box);
+  }
+  var started = false;
+  /* withdrawing consent: remove Google's cookies and reload the page without the script */
+  function stop() {
+    var host = location.hostname.split('.');
+    var domains = ['', location.hostname, '.' + location.hostname];
+    if (host.length > 2) domains.push('.' + host.slice(-2).join('.'));
+    document.cookie.split(';').forEach(function (c) {
+      var name = c.split('=')[0].trim();
+      if (!/^_ga/.test(name)) return;
+      domains.forEach(function (d) {
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + (d ? '; domain=' + d : '');
+      });
+    });
+    location.reload();
+  }
+  /* "Configurar cookies" in the footer: lets the visitor change the answer at any time */
+  function settingsLink() {
+    var bottom = document.querySelector('.footer__bottom');
+    if (!bottom || bottom.querySelector('[data-cookie-settings]')) return;
+    var span = document.createElement('span');
+    var btn = document.createElement('a');
+    btn.href = '#cookies';
+    btn.setAttribute('data-cookie-settings', '');
+    btn.textContent = 'Configurar cookies';
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!document.querySelector('.consent')) banner();
+    });
+    span.appendChild(btn);
+    bottom.appendChild(span);
   }
   var answer = stored();
   if (answer === 'granted') start();
   else if (answer !== 'denied') banner();
+  settingsLink();
 
   function start() {
+  if (started) return;
+  started = true;
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
   window.gtag = window.gtag || gtag;

@@ -16,6 +16,7 @@ const GAP_SECONDS = 20;
 const HOUR_LIMIT  = 5;
 const DAY_LIMIT   = 100;
 const LOG_MAX     = 2000000; // bytes; the log is rotated once
+const LOG_DAYS    = 730;     // messages older than this are deleted from the log (24 months)
 
 function reply($status, $ok, $message = '')
 {
@@ -152,10 +153,34 @@ if (!$sent) {
     $sent = @mail(TARS_TO, $encodedSubject, $body, implode("\r\n", $headers));
 }
 
-/* ---------- the log keeps every message, sent or not ---------- */
+/* ---------- the log keeps every message, sent or not, for LOG_DAYS days ---------- */
 $logFile = $dir . '/mensajes.log';
+$oldLog  = $dir . '/mensajes.1.log';
+if (($state['purged'] ?? '') !== $today) { // once a day, while this request holds the lock
+    $cut = $now - LOG_DAYS * 86400;
+    foreach (array($logFile, $oldLog) as $file) {
+        if (!is_file($file)) {
+            continue;
+        }
+        $keep = array();
+        foreach ((array) file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $row = json_decode($line, true);
+            if (is_array($row) && isset($row['t']) && (int) strtotime($row['t']) >= $cut) {
+                $keep[] = $line;
+            }
+        }
+        if ($keep) {
+            @file_put_contents($file, implode("\n", $keep) . "\n");
+        } elseif ($file === $oldLog) {
+            @unlink($file);
+        } else {
+            @file_put_contents($file, '');
+        }
+    }
+    $state['purged'] = $today;
+}
 if (is_file($logFile) && filesize($logFile) > LOG_MAX) {
-    @rename($logFile, $dir . '/mensajes.1.log');
+    @rename($logFile, $oldLog);
 }
 $entry = json_encode(
     array(
